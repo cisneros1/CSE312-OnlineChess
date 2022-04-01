@@ -1,5 +1,4 @@
 import socketserver
-import pymongo
 
 import sys
 import os
@@ -8,8 +7,9 @@ import secrets
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
-
-    # def __init__(self,) -> if state variables desired
+    
+    if os.path.isdir('/root'):
+        inDocker = True
 
     def handle(self):
         while True:
@@ -24,9 +24,11 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             print(str(self.data))
             sys.stdout.flush()
             sys.stderr.flush()
-
             self.full_bytes_sent += self.data
             self.iterations += 1
+            
+            
+            
 
 
 if __name__ == "__main__":

@@ -3,7 +3,8 @@ version: '3.4'
 
 services:
   mysql:
-    image: mysql
+    platform: linux/x86_64
+    image: mysql:5.7
     environment:
       MYSQL_DATABASE: 'CSE312-Project'
       MYSQL_USER: 'Felipe'
