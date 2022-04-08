@@ -1,6 +1,6 @@
 
 
-
+# Returns 'get', 'post' etc
 def find_request_type(request: str):
     string_list = request.split('\r\n')
     header_info = string_list[0].split(" ")
@@ -8,7 +8,7 @@ def find_request_type(request: str):
     return req_type.lower()
 
 # returns the path, headers and content(if applicable) in a tuple
-# return type is a bytearray
+# return type is a bytearray (for each element)
 def parse_request(request: bytes):
     string_list = request.split(b'\r\n')
 
