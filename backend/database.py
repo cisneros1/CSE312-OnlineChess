@@ -15,10 +15,9 @@ cursor = db.cursor(prepared=True)
 # This create the table with an auto incremented id
 # We can use the 'TEXT' type for string and 'BLOB' to store bytes (for images)
 cursor.execute("""CREATE TABLE IF NOT EXISTS users (
-                      id INT AUTO_INCREMENT PRIMARY KEY,
-                      email TEXT,
                       username TEXT,
-                      deleted TEXT)
+                      message TEXT,
+                      id INT AUTO_INCREMENT PRIMARY KEY)
                       """)
 
 show_databases = "SHOW DATABASES"
@@ -26,5 +25,12 @@ cursor.execute(show_databases)  # Should only display 'CSE312-Project'
 databases = cursor.fetchall()
 for database in databases:
     print(database)
+
+# Add a user to the users table
+def add_user(user_name: str, message:str, cursor, db):
+    query = "INSERT INTO users (username, message) VALUES (%s, %s)"
+    values = (user_name, message)
+    cursor.execute(query, values)
+    db.commit()
 
 
