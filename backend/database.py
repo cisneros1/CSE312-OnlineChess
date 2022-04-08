@@ -20,7 +20,7 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                       id INT AUTO_INCREMENT PRIMARY KEY)
                       """)
 
-show_databases = "SHOW DATABASES"
+show_databases = "SHOW DATABASES"   # a query to return all databases
 cursor.execute(show_databases)  # Should only display 'CSE312-Project'
 databases = cursor.fetchall()
 for database in databases:
@@ -33,4 +33,15 @@ def add_user(user_name: str, message:str, cursor, db):
     cursor.execute(query, values)
     db.commit()
 
-
+# all users and their unique ids in a list
+def retrieve_users(cursor, db):
+    query = "SELECT * FROM users"
+    cursor.execute(query)
+    all_users = cursor.fetchall()
+    user_array = []
+    for user in all_users:
+        user_name = user[0]
+        user_message = user[1]
+        user_id = user[2]
+        user_array.append((user_name, user_message, user_id))
+    return user_array
