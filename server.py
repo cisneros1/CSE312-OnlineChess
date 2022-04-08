@@ -4,17 +4,19 @@ import sys
 import os
 import secrets
 from parsers import *
+from get import handle_get
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
     
     if os.path.isdir('/root'):
         inDocker = True
-
+        
+    full_bytes_sent: bytes = b''
     def handle(self):
         while True:
-            received_data = self.request.recv(1024).strip()
-            string_data: str = received_data.decode()
+            self.data = self.request.recv(1024).strip()
+            string_data: str = self.data.decode()
             path, headers, content = parse_request(self.data)
             # Data buffering
             data = self.data
@@ -38,14 +40,11 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 boundary = get_boundary(headers)
                 content = parse_content(data, boundary)
             request_type = find_request_type(string_data)   # is either 'get', 'post', 'delete' etc
-
-            print('Length of incoming data: ' + str(len(self.data)))
-            print("{} sent:".format(self.client_address[0]))
-            print(str(self.data))
             sys.stdout.flush()
             sys.stderr.flush()
-            self.full_bytes_sent += self.data
-            self.iterations += 1
+            
+            if request_type == 'get':
+                handle_get(self, data)
             
             
             
