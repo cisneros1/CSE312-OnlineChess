@@ -3,8 +3,8 @@ import socketserver
 import sys
 import os
 import secrets
-from parsers import *
-from get import handle_get
+from backend.parsers import *
+from backend.get import handle_get
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
@@ -46,10 +46,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             if request_type == 'get':
                 handle_get(self, data)
             
-            
-            
-
-
+        
 if __name__ == "__main__":
     HOST, PORT = '0.0.0.0', 8000
 

@@ -9,6 +9,8 @@ RUN pip3 install -r requirements.txt
 RUN pip install requests
 RUN python3 -m pip install pymongo[srv]
 COPY . .
+WORKDIR /root/backend
+COPY . .
 
 EXPOSE 8000
 
