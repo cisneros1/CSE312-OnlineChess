@@ -12,6 +12,8 @@ from websocket import ws_server
 
 def handle_get(self, received_data):
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
+    
+    # print(str(received_data.split(b'\r\n\r\n')))
 
     if path == '/':
         index(self, received_data)
@@ -28,7 +30,7 @@ def handle_get(self, received_data):
     elif path == '/style.css':
         style(self)
 
-    elif '/image/' in path:
+    elif '/image' in path:
         image(self, path)
 
     elif '/favicon' in path:
