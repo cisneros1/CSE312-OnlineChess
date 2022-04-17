@@ -61,7 +61,7 @@ def save_image(self, received_data: bytes, image_location: str):
         f.write(image_as_bytes)
 
 
-def message_parse(self, received_data: bytes):
+def escape_html(self, received_data: bytes):
     message_list = received_data.split(b'Content-Disposition: form-data; name="message"\r\n\r\n')
     if len(message_list) > 1:
         message = message_list[1]

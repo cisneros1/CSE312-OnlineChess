@@ -47,3 +47,13 @@ def retrieve_users(cursor, db):
         user_id = user[2]
         user_array.append((user_name, user_message, user_id))
     return user_array
+
+def retrieve_chathistory(cursor, db):
+    query = "SELECT json_message from users"
+    cursor.execute(query)
+    all_users = []
+    user_array = []
+    for user in all_users:
+        message = user[0]
+        user_array.append(message)
+    return user_array

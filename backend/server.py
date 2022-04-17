@@ -5,10 +5,11 @@ import os
 import secrets
 from parsers import *
 from get import *
-
+from post import escape_html
+from database import *
 
 # Read n number of bytes and increment i by n
-def read_byte(data, i, n=1) -> (bytearray, int):
+def read_byte(data, i, n=1):
     byte = bytearray()
     for index in range(n):
         byte += int_to_bytearray(data[i + index], 1)
@@ -222,7 +223,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     print(f"\r\nresponse = {response} and websocket_len = {len(MyTCPHandler.web_sockets)}\r\n")
                     sys.stdout.flush()
                     sys.stderr.flush()
-                    store_chatmessage(db, cursor, response)  # Store on database. Look at database.py
+                    # store_chatmessage(db, cursor, response)  # Store on database. Look at database.py
+                    add_user(random_username, response, cursor, db) # Store on database
                     sys.stdout.flush()
                     sys.stderr.flush()
                     send_opcode = 129
