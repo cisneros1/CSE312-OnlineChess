@@ -72,14 +72,14 @@ def websocket_server(tcp_handler, username):
                     comment = json_as_dict['comment']
                     comment = escape_html(comment)
                     
-                    outputdict = {'messageType': 'chatMessage','username': username,'comment': comment}
-                    print(str(outputdict))
+                    # outputdict = {'messageType': 'chatMessage','username': username,'comment': comment}
+                    # print(str(outputdict))
 
-                    # DATABASE INSERT
-                    id = db.get_next_id()
-                    entry = {'_id': id,'messageType': 'chatMessage','username': username,'comment': comment}
+                    # # DATABASE INSERT
+                    # id = db.get_next_id()
+                    # entry = {'_id': id,'messageType': 'chatMessage','username': username,'comment': comment}
                     
-                    db.insert(entry)
+                    # db.insert(entry)
                     # print('Comment inserted to Database')
                     
                     # CREATE AND SEND FRAME

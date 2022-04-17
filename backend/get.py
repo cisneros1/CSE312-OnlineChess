@@ -62,9 +62,9 @@ def websocket(self, received_data):
     return_key = hashlib.sha1(key).digest()
     return_key = base64.b64encode(return_key)
     send_101(self, return_key)
-    with open("status.txt", 'w') as f:
-        f.write("upgraded")
-    websocket_server(self, username)
+    # with open("status.txt", 'w') as f:
+    #     f.write("upgraded")
+    # websocket_server(self, username)
 
 
 # /chathistory
@@ -73,7 +73,7 @@ def chat(self, received_data):
     chat_array = retrieve_chathistory(cursor, db)
     json_array = json.dumps(chat_array)
     content_length = len(json_array)
-    response = f"HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length:{content_length}\r\n\r\n{json_array}"
+    # response = f"HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length:{content_length}\r\n\r\n{json_array}"
     # return response.encode()
     send_200(self, len(json_array), 'application/json', json_array)
     # print('JSON Sent to User: ' + str(body))
