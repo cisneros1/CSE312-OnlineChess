@@ -231,7 +231,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                         websocket.request.sendall(response_frame)
                 sys.stdout.flush()
                 sys.stderr.flush()
-                
+
     def handle(self):
         while True:
             self.data = self.request.recv(1024)
@@ -269,12 +269,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             if len(self.data) < 1023:
                 break
             
-        if path.lower() == '/websocket':
-            MyTCPHandler.web_sockets.append(self)
-            self.handle_websocket()
+        
         print(str(self.full_bytes_sent))
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
+
+        if path.lower() == '/websocket':
+            MyTCPHandler.web_sockets.append(self)
+            self.handle_websocket()
             
         
 if __name__ == "__main__":
