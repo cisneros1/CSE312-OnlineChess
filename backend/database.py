@@ -29,7 +29,7 @@ for database in databases:
 # Add a user to the users table
 # {messageType, username, comment}
 def add_user(user_name: str, message:str, cursor, db):
-    query = "INSERT INTO users (username, message) VALUES (%s, %s)"
+    query = "INSERT INTO users (username, json_message) VALUES (%s, %s)"
     values = (user_name, message)
     cursor.execute(query, values)
     db.commit()
