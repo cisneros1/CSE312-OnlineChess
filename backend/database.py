@@ -1,6 +1,6 @@
 import mysql.connector as mysql
 import os
-
+import json
 # This retrieves the environment variable from the docker compose file
 user = os.getenv('DATABASE_USER')   # This is set to 'Felipe' in the docker compose file for now
 password = os.getenv('DATABASE_PASSWORD')   # 'Gallardo'
@@ -54,6 +54,6 @@ def retrieve_chathistory(cursor, db):
     all_users = cursor.fetchall()
     json_messages = []
     for user in all_users:
-        message = user[0]
+        message = json.loads(user[0])
         json_messages.append(message)
     return json_messages
