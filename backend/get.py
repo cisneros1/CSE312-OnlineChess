@@ -1,19 +1,19 @@
 from typing import Any
-import backend.database as db
-import os, random, json, hashlib, base64
+import database as db
+import os ,random
+import json
+import hashlib
+import base64
 
-from template_engine import render_template
-from generate_response import send_200, send_101
+from generate_response import send_200, send_101, send_301
 from filepaths import file_paths
-from websocket import ws_server
+from websocket import websocket_server
 
 # DEAL WITH ONLY GET REQUESTS
 
 
 def handle_get(self, received_data):
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
-    
-    # print(str(received_data.split(b'\r\n\r\n')))
 
     if path == '/':
         index(self, received_data)
@@ -30,71 +30,82 @@ def handle_get(self, received_data):
     elif path == '/style.css':
         style(self)
 
-    elif '/image' in path:
+    elif '/image/' in path:
         image(self, path)
 
     elif '/favicon' in path:
         favicon(self, path)
     else:
         print('Unrecognized Request, sending 404')
-        # 404 here
+
 
 
 def index(self, received_data):
-    file_path = file_paths(self)
+        file_path = file_paths(self)
 
-    with open(file_path['index.html'], 'rb') as content:
-        body = content.read()
-    mimetype = 'text/html; charset=utf-8'
-    length = os.path.getsize(file_path['index.html'])
+        with open(file_path['index.html'], 'rb') as content:
+            body = content.read()
+        mimetype = 'text/html; charset=utf-8'
+        length = os.path.getsize(file_path['index.html'])
+        
+        send_200(self, length, mimetype, body)
 
-    send_200(self, length, mimetype, body)
 
 
 def websocket(self, received_data):
-    # Generate user name
-    # Get websocket key
-    # Append 258EAFA5-E914-47DA-95CA-C5AB0DC85B11
-    # Return sha1 digest
-    # base 64 encode it 
-    # send 101
-    # enter webocket server
-    print('Websocket received')
-    
+    username = "User" + str(random.randint(0, 1000))
+    print('User: ' + username + ' has opened a websocket connection')
+    key = received_data.split(b'Sec-WebSocket-Key: ')[1]
+    key = key.split(b'\r\n')[0]
+    key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+    return_key = hashlib.sha1(key).digest()
+    return_key = base64.b64encode(return_key)
+    send_101(self, return_key)
+    with open("status.txt", 'w') as f:
+        f.write("upgraded")
+    websocket_server(self, username)
+
 
 
 def chat(self, received_data):
-    # Get list of users in sqlite database
-    # Create list of json containing each in format {"username": ["username"], "comment": ["comment"]}
-    # encode list and send 200 
-    # AJAX weill be in charge of html placement
-    print('/get-history request was receieved')
+    # Returns list of comments stored in the database
+    json_users = (db.list_all()).copy()
+    # print('List is: ' + str(json_users))
+    newList: list[dict[str, Any]] = []
+    for dict in json_users:
+        new_dict = {"username": dict["username"], "comment": dict["comment"]}
+        newList.append(new_dict)
+
+    res = str(newList)
+    mimetype = 'application/json'
+    # replace all the single quotes with double quotes for the json 
+    body = res.replace("'",'"')
+    body = body.encode()
+    send_200(self, len(body), mimetype, body)
+    # print('JSON Sent to User: ' + str(body))
     
-
-
+    
 def javascript(self):
     mimetype = 'application/javascript; charset=utf-8'
     file_path = file_paths(self)
     filename = str(file_path["functions.js"])
     body = ''
-
+    
     with open(filename, 'rb') as content:
         body = content.read()
-
+    
     send_200(self, len(body), mimetype, body)
-
 
 def style(self):
     mimetype = 'text/css; charset=utf-8'
     file_path = file_paths(self)
     filename = str(file_path["style.css"])
     body = ''
-
+    
     with open(filename, 'rb') as content:
         body = content.read()
-
+        
     send_200(self, len(body), mimetype, body)
-
 
 def image(self, path):
     mimetype = 'image/jpeg'
@@ -102,20 +113,22 @@ def image(self, path):
     path = path.split('/')[2]
     filename = str(folder_path["imagefolder"]) + path
     len = str(os.path.getsize(filename))
-
+    
     with open(filename, 'rb') as content:
         body = content.read()
-
+        
     send_200(self, len, mimetype, body)
-
+    
 
 def favicon(self, path):
     mimetype = 'image/x-icon'
     folder_path = file_paths(self)
     filename = str(folder_path["favicon"])
     length = str(os.path.getsize(filename))
-
+    
     with open(filename, 'rb') as content:
         body = content.read()
-
+        
     send_200(self, length, mimetype, body)
+    
+    

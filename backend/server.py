@@ -4,7 +4,7 @@ import sys
 import os
 import secrets
 from parsers import *
-from get import handle_get
+from get import *
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
