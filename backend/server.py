@@ -5,7 +5,7 @@ import os
 import secrets
 from parsers import *
 from get import *
-from template_engine import escape_html
+# from template_engine import escape_html
 from database import *
 
 # Read n number of bytes and increment i by n
@@ -15,6 +15,9 @@ def read_byte(data, i, n=1):
         byte += int_to_bytearray(data[i + index], 1)
     i += n
     return byte, i
+
+def escape_html(input):
+    return input.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
 def bytes_to_int(b: bytes):
