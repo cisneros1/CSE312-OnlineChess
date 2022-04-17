@@ -71,8 +71,9 @@ def websocket(self, received_data):
 def chat(self, received_data):
     # Returns list of comments stored in the database
     chat_array = retrieve_chathistory(cursor, db)
+    print(chat_array)
     json_array = json.dumps(chat_array)
-    content_length = len(json_array)
+    # content_length = len(json_array)
     # response = f"HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length:{content_length}\r\n\r\n{json_array}"
     # return response.encode()
     send_200(self, len(json_array), 'application/json', json_array.encode())
