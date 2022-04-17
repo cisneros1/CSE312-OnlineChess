@@ -75,7 +75,7 @@ def chat(self, received_data):
     content_length = len(json_array)
     # response = f"HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length:{content_length}\r\n\r\n{json_array}"
     # return response.encode()
-    send_200(self, len(json_array), 'application/json', json_array)
+    send_200(self, len(json_array), 'application/json', json_array.encode())
     # print('JSON Sent to User: ' + str(body))
     
     
