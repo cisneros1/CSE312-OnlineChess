@@ -52,17 +52,23 @@ def websocket_server(tcp_handler, username):
                     print('Received a webRTC offer')
                     for conn in ws_conn:
                         if conn != tcp_handler:
-                            conn.request.sendall(full_data)
+                            # build and send
+                            frame_to_send = frame_parser.build_output_frame(frame_data[0])
+                            conn.request.sendall(frame_to_send)
                 elif 'answer' in str(frame_data[0]):
                     print('Received a webRTC answer')
                     for conn in ws_conn:
                         if conn != tcp_handler:
-                            conn.request.sendall(full_data)
+                            frame_to_send = frame_parser.build_output_frame(
+                                frame_data[0])
+                            conn.request.sendall(frame_to_send)
                 elif 'candidate' in str(frame_data[0]):
                     print('Received a candidate request')
                     for conn in ws_conn:
                         if conn != tcp_handler:
-                            conn.request.sendall(full_data)
+                            frame_to_send = frame_parser.build_output_frame(
+                                frame_data[0])
+                            conn.request.sendall(frame_to_send)
                 else:
                     # NORMAL TEXT FRAME
                     # literal_eval function turns a string of a json string into an actual dumped json string 
