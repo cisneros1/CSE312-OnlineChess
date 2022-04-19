@@ -29,7 +29,7 @@ def apply_mask(mask: bytearray, payload: bytearray) -> bytearray:
     mask_len = len(mask)  # This should be 4
     payload_len = len(payload)
     masked_payload = bytearray()
-    print(f"mask_len = {mask_len} and payload_len = {payload_len}")
+    # print(f"mask_len = {mask_len} and payload_len = {payload_len}")
 
     for i in range(payload_len):
         masked_byte: int = mask[i % mask_len] ^ payload[i]
