@@ -6,7 +6,7 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
 
-<body onload="welcome();setup();">
+<body onload="welcome(); setup();">
 
     
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -53,12 +53,14 @@
 <label for="chat-comment">Chat: </label>
 <input id="chat-comment" type="text" name="comment">
 
-<canvas id="chess_canvas" width="1000" height="1000" style="border:1px solid #d3d3d3;">
-Canvas here.
-</canvas>
+
 
 
 <button onclick="sendMessage()">Send</button>
+
+<canvas id="chess_canvas" width="1000" height="1000" style="border:1px solid #d3d3d3;">
+Canvas here.
+</canvas>
 
 <div id="chat"></div>
 

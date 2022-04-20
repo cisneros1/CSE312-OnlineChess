@@ -78,7 +78,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             if data != b'':
                 print(
                     f"\r\n------------- WebSocket Data with len = {len(data)} on web_index = {MyTCPHandler.web_sockets.index(self)}----------------")
-                print("\r\n------------- End WebSocket Data 1 ----------------")
+                # print("\r\n------------- End WebSocket Data 1 ----------------")
                 # opcode_mask = b'\x0f'   # 15 = 0000_1111
                 opcode_mask = 15  # 15 = 0000_1111
                 i = 0
@@ -216,17 +216,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                                 print(f"Sending frame of size {len(frame)} with message type {message_type}")
                                 websocket.request.sendall(frame)
                     except Exception as e:
-                        print("\r\nEncountered error :(")
                         print(e)
                 else:
                     # Send chat message
                     response = {'messageType': 'chatMessage', 'username': random_username,
                                 'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
-                    print(f"\r\nresponse = {response} and websocket_len = {len(MyTCPHandler.web_sockets)}\r\n")
                     sys.stdout.flush()
                     sys.stderr.flush()
-                    # store_chatmessage(db, cursor, response)  # Store on database. Look at database.py
                     add_user(random_username, response, cursor, db) # Store on database
                     sys.stdout.flush()
                     sys.stderr.flush()

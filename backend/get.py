@@ -1,7 +1,7 @@
 from typing import Any
 from backend.database import retrieve_chathistory
 from database import *
-import os ,random
+import os, random
 import json
 import hashlib
 import base64
@@ -9,6 +9,7 @@ import base64
 from generate_response import send_200, send_101, send_301
 from filepaths import file_paths
 from websocket import websocket_server
+
 
 # DEAL WITH ONLY GET REQUESTS
 
@@ -28,6 +29,9 @@ def handle_get(self, received_data):
     elif path == '/functions.js':
         javascript(self)
 
+    elif path == '/Chess/ChessEngine.js':
+        chess_engine(self)
+
     elif path == '/style.css':
         style(self)
 
@@ -37,20 +41,19 @@ def handle_get(self, received_data):
     elif '/favicon' in path:
         favicon(self, path)
     else:
+
         print('Unrecognized Request, sending 404')
 
 
-
 def index(self, received_data):
-        file_path = file_paths(self)
+    file_path = file_paths(self)
 
-        with open(file_path['index.html'], 'rb') as content:
-            body = content.read()
-        mimetype = 'text/html; charset=utf-8'
-        length = os.path.getsize(file_path['index.html'])
-        
-        send_200(self, length, mimetype, body)
+    with open(file_path['index.html'], 'rb') as content:
+        body = content.read()
+    mimetype = 'text/html; charset=utf-8'
+    length = os.path.getsize(file_path['index.html'])
 
+    send_200(self, length, mimetype, body)
 
 
 def websocket(self, received_data):
@@ -67,40 +70,52 @@ def websocket(self, received_data):
     # websocket_server(self, username)
 
 
-# /chathistory
+# path = '/chathistory'
 def chat(self, received_data):
     # Returns list of comments stored in the database
     chat_array = retrieve_chathistory(cursor, db)
-    print(chat_array)
+    print(f"\r\nCurrent chat history are {chat_array}\r\n")
     json_array = json.dumps(chat_array)
-    # content_length = len(json_array)
-    # response = f"HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length:{content_length}\r\n\r\n{json_array}"
-    # return response.encode()
     send_200(self, len(json_array), 'application/json', json_array.encode())
-    # print('JSON Sent to User: ' + str(body))
-    
-    
+
+
+#   path = '/functions.js'
 def javascript(self):
     mimetype = 'application/javascript; charset=utf-8'
     file_path = file_paths(self)
     filename = str(file_path["functions.js"])
     body = ''
-    
+
     with open(filename, 'rb') as content:
         body = content.read()
-    
+
+    # print(body.decode())
     send_200(self, len(body), mimetype, body)
+
+
+# path = '/Chess/ChessEngine.js'
+def chess_engine(self):
+    mimetype = 'application/javascript; charset=utf-8'
+    file_path = file_paths(self)
+    filename = str(file_path["/Chess/ChessEngine.js"])
+    body = ''
+    with open(filename, 'rb') as content:
+        body = content.read()
+
+    send_200(self, len(body), mimetype, body)
+
 
 def style(self):
     mimetype = 'text/css; charset=utf-8'
     file_path = file_paths(self)
     filename = str(file_path["style.css"])
     body = ''
-    
+
     with open(filename, 'rb') as content:
         body = content.read()
-        
+
     send_200(self, len(body), mimetype, body)
+
 
 def image(self, path):
     mimetype = 'image/jpeg'
@@ -108,22 +123,20 @@ def image(self, path):
     path = path.split('/')[2]
     filename = str(folder_path["imagefolder"]) + path
     len = str(os.path.getsize(filename))
-    
+
     with open(filename, 'rb') as content:
         body = content.read()
-        
+
     send_200(self, len, mimetype, body)
-    
+
 
 def favicon(self, path):
     mimetype = 'image/x-icon'
     folder_path = file_paths(self)
     filename = str(folder_path["favicon"])
     length = str(os.path.getsize(filename))
-    
+
     with open(filename, 'rb') as content:
         body = content.read()
-        
+
     send_200(self, length, mimetype, body)
-    
-    

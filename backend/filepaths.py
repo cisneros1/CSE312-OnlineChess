@@ -6,6 +6,7 @@ def file_paths(self):
             "index.html": '/Users/brianc/Desktop/cse312/CSE312-OnlineChess/frontend/index.html',
             "styles.css": '/Users/brianc/Desktop/cse312/CSE312-OnlineChess/frontend/style.css',
             "functions.js": '/Users/brianc/Desktop/cse312/CSE312-OnlineChess/frontend/functions.js',
+            "/Chess/ChessEngine.js": '../Chess/ChessEngine.js',
             "imagefolder": '/Users/brianc/Desktop/cse312/CSE312-OnlineChess/frontend/image',
         }
     else:
@@ -13,6 +14,7 @@ def file_paths(self):
             "index.html": '/root/frontend/index.html',
             "style.css": '/root/frontend/style.css',
             "functions.js": '/root/frontend/functions.js',
+            "/Chess/ChessEngine.js": '/root/Chess/ChessEngine.js',
             "imagefolder": '/root/frontend/image/',
             "favicon": '/root/frontend/favicon.ico'
         }
