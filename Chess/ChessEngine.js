@@ -95,6 +95,7 @@ class GameState {
         // Begin main loop
         this.updateGame();
     }
+
     // The main loop.
     updateGame() {
         clearAll(this.context);
@@ -102,16 +103,10 @@ class GameState {
         for (let piece of this.pieces) {
             piece.display_piece(this.context);
         }
-
-        // this.context.save();
-        // Draw high opacity square to find the right coordinates
-        // this.context.globalAlpha = 0.4;
-        // this.context.fillStyle = "#2083f5";
-        // this.context.fillRect(top_left_coord[1], top_left_coord[0], square_size, square_size);
-        // this.context.restore();
-        // let offset = square_size / 2
-        // this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
+        let offset = square_size / 2;
+        this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
         // console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
+        console.log(coordToGrid(this.cursor_x, this.cursor_y));
         requestAnimationFrame(this.updateGame.bind(this));  // Repeatedly call this method.
     }
 }
@@ -146,6 +141,23 @@ function displayImage(piece_name, x, y, height, width) {
         context.drawImage(image, x, y);
     };
     return image;
+}
+
+function within_range(value, min, max) {
+    return value > min && value <= max;
+}
+
+function coordToGrid(x_pos, y_pos) {
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if (within_range(x_pos, top_left_coord[1] + j * square_size, top_left_coord[1] + j * square_size + square_size)) {
+                if (within_range(y_pos, top_left_coord[0] + i * square_size, top_left_coord[0] + i * square_size + square_size)) {
+                    return [i, j];
+                }
+            }
+        }
+    }
+    return [];
 }
 
 // Draw the chess onto the canvas
