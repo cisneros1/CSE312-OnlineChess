@@ -1,11 +1,12 @@
 class Piece {
     constructor(piece_name, grid_coord) {
-        this.piece_name = piece_name;
-        this.grid_y = grid_coord[0];   // eg [1, 1]
+        this.piece_name = piece_name;   // could be "b_pawn", w_knight", etc
+        this.grid_y = grid_coord[0];   // The piece of the piece in chess_grid 2d array
         this.grid_x = grid_coord[1];
         this.captured = false; // If the piece has been captured
         this.has_moved = false; // If a piece has been moved or not
         this.clicked = false; // If a piece is being dragged by the cursor
+        this.color = piece_name.startsWith('w') ? "white" : "black"; // Assign "white" or "black" to a piece
         // The image attached to a piece
         this.image = new Image();
         this.image.src = '../frontend/image/' + piece_name + '.png';
@@ -14,14 +15,22 @@ class Piece {
         this.image.width = new_piece_size;
 
         // Dimensions of the piece
-        chess_grid[this.grid_y][this.grid_x] = piece_name;  // grid[x][y] = 'b_pawn'
+        chess_grid[this.grid_y][this.grid_x] = piece_name;  // grid[y][x] = 'b_pawn'
     }
 
-    display_piece(context) {
-        if (this.captured === false) {
+    display_piece(context, cursor_pos = null) {
+        // Only display non-captured pieces
+        if (this.captured === false && cursor_pos === null) {
             // Only display if this piece has not been captured yet
             let position = this.grid_to_pos();
             context.drawImage(this.image, position[1], position[0], this.image.width, this.image.height);
+        }
+        // if a piece was clicked then it will follow the cursor
+        else if (this.captured === false && cursor_pos !== null) {
+            let x_pos = cursor_pos[0];
+            let y_pos = cursor_pos[1];
+            let offset = -this.image.width / 2;
+            context.drawImage(this.image, x_pos + offset, y_pos + offset, this.image.width, this.image.height);
         }
     }
 
@@ -85,28 +94,72 @@ class GameState {
         this.cursor_y = 0;
         this.canvas = document.getElementById("chess_canvas");
         this.context = this.canvas.getContext("2d");
+        this.last_clicked = [0, 0];
         // Update the location of the cursor position
         let instance = this;
         window.addEventListener('mousemove', function (e) {
             instance.cursor_x = e.offsetX;
             instance.cursor_y = e.offsetY;
         });
+
+        // TODO - The event handlers below are unfinished.
+        // Listen for mouse clicks
+        window.addEventListener('mousedown', function (e) {
+            instance.last_clicked = [e.offsetY, e.offsetX];
+            console.log(instance.last_clicked);
+            let square_clicked = coordToGrid(e.offsetX, e.offsetY);
+            // If a piece was clicked. The empty string is falsy.
+            if (square_clicked) {
+                let piece_clicked = instance.gridtoPiece(square_clicked[0], square_clicked[1]);
+                if (piece_clicked) {
+                    piece_clicked.clicked = true;
+                }
+            }
+        });
+        // Listen for mouse release. This is where we make a chess move
+        window.addEventListener('mouseup', function (e) {
+            instance.last_clicked = [0, 0];
+            for (let piece of instance.pieces){
+                piece.clicked = false;
+            }
+        });
         console.log("Created Game State");
         // Begin main loop
         this.updateGame();
+    }
+
+    // Given an x and y grid index return the corresponding chess on that square. Returns '' if no piece was clicked.
+    gridtoPiece(y, x) {
+        let piece = '';
+        for (let piece of this.pieces) {
+            if (piece.grid_y === y && piece.grid_x === x && this.grid[y][x] === piece.piece_name) {
+                return piece;
+            }
+        }
+        return piece;
+    }
+    // Display all of the chess pieces
+    // TODO - Check if a piece is captured or not.
+    displayAllPieces() {
+        for (let piece of this.pieces) {
+            if (piece.clicked && !piece.captured){
+                piece.display_piece(this.context, [this.cursor_x, this.cursor_y]);
+            }
+            else {
+                piece.display_piece(this.context);
+            }
+        }
     }
 
     // The main loop.
     updateGame() {
         clearAll(this.context);
         clearBoard();
-        for (let piece of this.pieces) {
-            piece.display_piece(this.context);
-        }
+        this.displayAllPieces();
         let offset = square_size / 2;
-        this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
+        // this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
         // console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
-        console.log(coordToGrid(this.cursor_x, this.cursor_y));
+        // console.log(coordToGrid(this.cursor_x, this.cursor_y));
         requestAnimationFrame(this.updateGame.bind(this));  // Repeatedly call this method.
     }
 }
