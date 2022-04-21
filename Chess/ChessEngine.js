@@ -18,7 +18,6 @@ class Piece {
     }
 
     display_piece(context) {
-        // TODO - change x and y values
         if (this.captured === false) {
             // Only display if this piece has not been captured yet
             let position = this.grid_to_pos();
@@ -89,8 +88,8 @@ class GameState {
         // Update the location of the cursor position
         let instance = this;
         window.addEventListener('mousemove', function (e) {
-            instance.cursor_x = e.pageX;
-            instance.cursor_y = e.pageY;
+            instance.cursor_x = e.offsetX;
+            instance.cursor_y = e.offsetY;
         });
         console.log("Created Game State");
         // Begin main loop
@@ -107,9 +106,12 @@ class GameState {
         // Draw high opacity square to find the right coordinates
         this.context.globalAlpha = 0.4;
         this.context.fillStyle = "#2083f5";
+        // console.log("Making a rectangle X: " + top_left_coord[1] + " Y: " + top_left_coord[0]);
         this.context.fillRect(top_left_coord[1], top_left_coord[0], square_size, square_size);
         this.context.restore();
 
+        this.context.fillRect(this.cursor_x, this.cursor_y, square_size, square_size);
+        console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
         requestAnimationFrame(this.updateGame.bind(this));  // Repeatedly call this method.
     }
 }
@@ -157,8 +159,8 @@ function clearBoard() {
 // Draw clear the canvas
 function clearAll(context) {
     let canvas = document.getElementById("chess_canvas");
-    let canvas_width = 1000;
-    let canvas_height = 1000;
+    let canvas_width = canvas.width;
+    let canvas_height = canvas.height;
     context.clearRect(0, 0, canvas_width, canvas_height);
 }
 
