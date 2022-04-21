@@ -102,16 +102,16 @@ class GameState {
         for (let piece of this.pieces) {
             piece.display_piece(this.context);
         }
-        this.context.save();
-        // Draw high opacity square to find the right coordinates
-        this.context.globalAlpha = 0.4;
-        this.context.fillStyle = "#2083f5";
-        // console.log("Making a rectangle X: " + top_left_coord[1] + " Y: " + top_left_coord[0]);
-        this.context.fillRect(top_left_coord[1], top_left_coord[0], square_size, square_size);
-        this.context.restore();
 
-        this.context.fillRect(this.cursor_x, this.cursor_y, square_size, square_size);
-        console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
+        // this.context.save();
+        // Draw high opacity square to find the right coordinates
+        // this.context.globalAlpha = 0.4;
+        // this.context.fillStyle = "#2083f5";
+        // this.context.fillRect(top_left_coord[1], top_left_coord[0], square_size, square_size);
+        // this.context.restore();
+        // let offset = square_size / 2
+        // this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
+        // console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
         requestAnimationFrame(this.updateGame.bind(this));  // Repeatedly call this method.
     }
 }

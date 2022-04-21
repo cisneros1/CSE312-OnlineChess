@@ -120,8 +120,14 @@ def style(self):
 def image(self, path):
     mimetype = 'image/jpeg'
     folder_path = file_paths(self)
+    complete_path = path
     path = path.split('/')[2]
-    filename = str(folder_path["imagefolder"]) + path
+
+    filename = ''
+    if complete_path.startswith('/frontend/'):
+        filename = '/root' + complete_path
+    elif complete_path.startswith('/image/'):
+        filename = str(folder_path["imagefolder"]) + path
     len = str(os.path.getsize(filename))
 
     with open(filename, 'rb') as content:
