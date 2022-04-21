@@ -9,12 +9,11 @@ class Piece {
         // The image attached to a piece
         this.image = new Image();
         this.image.src = '../frontend/image/' + piece_name + '.png';
-        this.image.height = piece_dim[0];
-        this.image.width = piece_dim[1];
+        let new_piece_size = square_size - 10;
+        this.image.height = new_piece_size;
+        this.image.width = new_piece_size;
 
         // Dimensions of the piece
-        this.width = piece_dim[0];
-        this.height = piece_dim[1];
         chess_grid[this.grid_y][this.grid_x] = piece_name;  // grid[x][y] = 'b_pawn'
     }
 
@@ -31,11 +30,11 @@ class Piece {
     grid_to_pos() {
         let board_x = top_left_coord[1];
         let board_y = top_left_coord[0];
-        let offset = Math.floor(piece_dim[0] / 2);
-        let square_size = Math.floor(80);
+        let offset_x = 5;
+        let offset_y = 2;
 
-        let pos_x = board_x + square_size * this.grid_x;
-        let pos_y = board_y + square_size * this.grid_y;
+        let pos_x = offset_x + board_x + square_size * this.grid_x;
+        let pos_y = offset_y + board_y + square_size * this.grid_y;
         return [pos_y, pos_x];
     }
 }
@@ -87,20 +86,17 @@ class GameState {
         this.cursor_y = 0;
         this.canvas = document.getElementById("chess_canvas");
         this.context = this.canvas.getContext("2d");
-        // Call updateGame every t milliseconds
+        // Update the location of the cursor position
         let instance = this;
-        let t = 20;
-        let interval = setInterval(function () {
-            instance.updateGame();
-        }, t)
-
         window.addEventListener('mousemove', function (e) {
             instance.cursor_x = e.pageX;
             instance.cursor_y = e.pageY;
         });
         console.log("Created Game State");
+        // Begin main loop
+        this.updateGame();
     }
-
+    // The main loop.
     updateGame() {
         clearAll(this.context);
         clearBoard();
@@ -109,10 +105,12 @@ class GameState {
         }
         this.context.save();
         // Draw high opacity square to find the right coordinates
-        this.context.fillStyle = "#FF0000";
-        this.context.fillRect(100, 100, 80, 80);
+        this.context.globalAlpha = 0.4;
+        this.context.fillStyle = "#2083f5";
+        this.context.fillRect(top_left_coord[1], top_left_coord[0], square_size, square_size);
         this.context.restore();
-        console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
+
+        requestAnimationFrame(this.updateGame.bind(this));  // Repeatedly call this method.
     }
 }
 
@@ -126,12 +124,13 @@ const chess_grid = [[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]
-const board_coord = [100, 100];   // x, y
-const board_size = 800            // Board is a 800*800 canvas
-const piece_dim = [70, 70];     // width and height of each piece
-const top_left_coord = [1216, 148]  // coordinate of where the chess board squares starts at the upper-left
-
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']];
+const board_coord = [100, 100];   // y, x
+const board_size = document.getElementById('chess_image').width;            // This should be 800. Board is an 800*800 canvas
+const piece_dim = [65, 65];     // width and height of each piece
+const square_size = 74;
+const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
+console.log("Board Width: " + board_size);
 
 // Display a chess on the board
 function displayImage(piece_name, x, y, height, width) {
@@ -147,6 +146,7 @@ function displayImage(piece_name, x, y, height, width) {
     return image;
 }
 
+// Draw the chess onto the canvas
 function clearBoard() {
     const canvas = document.getElementById("chess_canvas");
     const context = canvas.getContext("2d");
@@ -154,6 +154,7 @@ function clearBoard() {
     context.drawImage(chess_image, board_coord[0], board_coord[1]); // Draw the board
 }
 
+// Draw clear the canvas
 function clearAll(context) {
     let canvas = document.getElementById("chess_canvas");
     let canvas_width = 1000;
