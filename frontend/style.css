@@ -258,6 +258,7 @@
 }
 
 .home-section {
+    text-align: center;
     position: relative;
     background: #E4E9F7;
     min-height: 100vh;
@@ -287,33 +288,3 @@
     }
 }
 
-.main {
-    text-align: center;
-    background-color: rgb(196, 190, 181);
-}
-
-.chessboard {
-    display: inline-block;
-}
-
-.chatbox {
-    position: relative;
-    text-align: center;
-    background: dodgerblue;
-    height: 200px;
-    bottom: 99%;
-    padding-top: 5px;
-}
-
-.websocket {
-    position: absolute;
-    background: #E4E9F7;
-    height: 20px;
-    top: 60px;
-    right: 0px;
-    width: 100px;
-}
-
-/* .chessboard {
-    background-color: red;
-} */
