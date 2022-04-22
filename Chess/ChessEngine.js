@@ -23,9 +23,8 @@ class Piece {
     }
 
     display_piece(context, cursor_pos = null) {
-        // Only display non-captured pieces
+        // Only display if this piece has not been captured yet
         if (this.captured === false && cursor_pos === null) {
-            // Only display if this piece has not been captured yet
             let position = this.grid_to_pos();
             context.drawImage(this.image, position[1], position[0], this.image.width, this.image.height);
         }
@@ -39,8 +38,8 @@ class Piece {
     }
 
     // Check if a move is valid
-    // TODO - Test this. This won't work with pawns.
-    validate_move(color, y, x, grid, can_capture=true) {
+    // TODO - Untested.
+    validate_move(color, y, x, grid, can_capture = true) {
         if (!within_grid(y, x)) {
             return '';
         }
@@ -59,10 +58,10 @@ class Piece {
             if (piece) {
                 if (piece.color === "white" && grid[y][x].startsWith('w') && can_capture) {
                     return "capture_move";
-                } else {
-                    if (grid[y][x] === ' ') {
-                        return "valid_move";
-                    }
+                }
+            } else {
+                if (grid[y][x] === ' ') {
+                    return "valid_move";
                 }
             }
         }
@@ -88,23 +87,23 @@ class Pawn extends Piece {
         super(piece_name, grid_coord);
     }
 
-    // TODO - Update to include capture moves
+    // TODO - Update to include capture moves and en passant moves. Untested.
     generateMoves(grid) {
-        let moves = [[-1, 0], [-2, 0]]
-        if (this.color === "white") {
-            if (within_grid(this.grid_y - 1, this.grid_x) && chess_grid[this.grid_y - 1][this.grid_x] === " ") {
-                this.moves.push([this.grid_y - 1, this.grid_x]);
-            } else if (!this.has_moved && within_grid(this.grid_y - 2, this.grid_x) && chess_grid[this.grid_y - 2][this.grid_x] === " ") {
-                this.moves.push([this.grid_y - 2][this.grid_x]);
-                this.has_moved = true;
-            }
-
-        } else {
-            if (within_grid(this.grid_y + 1, this.grid_x) && chess_grid[this.grid_y + 1][this.grid_x] === " ") {
-                this.moves.push([this.grid_y + 1, this.grid_x]);
-            } else if (!this.has_moved && within_grid(this.grid_y + 2, this.grid_x) && chess_grid[this.grid_y + 2][this.grid_x] === " ") {
-                this.moves.push([this.grid_y + 2][this.grid_x]);
-                this.has_moved = true;
+        // Offset values. y, x, can_capture
+        let flip_y = this.color === 'white' ? 1 : -1;
+        let moves = [[-1 * flip_y, 0, false], [-2, 0, false], [-1 * flip_y, -1, true], [-1 * flip_y, 1, true]]   // An offset from the current position. For black side multiply y by -1.
+        if (!this.has_moved) {
+            moves.push([-2 * flip_y, 0, false]);
+        }
+        for (let move of moves) {
+            let offset_y = move[0] + this.grid_y;
+            let offset_x = move[1] + this.grid_x;
+            let is_valid = this.validate_move(this.color, offset_y, offset_x, grid, move[2]);
+            if (is_valid === "capture_move") {
+                this.moves.push([move[0], move[1]]);
+                this.attack_moves.push([move[0], move[1]]);
+            } else if (is_valid === "valid_move") {
+                this.moves.push([move[0], move[1]]);
             }
         }
     }
@@ -113,6 +112,10 @@ class Pawn extends Piece {
 class Bishop extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
+    }
+
+    generateMoves(grid) {
+        ;
     }
 }
 
@@ -158,7 +161,7 @@ class GameState {
             instance.cursor_x = e.offsetX;
             instance.cursor_y = e.offsetY;
         });
-        this.board_state_stack = [];
+        this.board_state_stack = [];    // To roll back turns. To check for checks, stalemates and checkmates.
         this.board_state = {
             turn: "white",
             total_turns: 0,
