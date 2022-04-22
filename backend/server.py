@@ -8,6 +8,7 @@ from get import *
 # from template_engine import escape_html
 from database import *
 
+
 # Read n number of bytes and increment i by n
 def read_byte(data, i, n=1):
     byte = bytearray()
@@ -15,6 +16,7 @@ def read_byte(data, i, n=1):
         byte += int_to_bytearray(data[i + index], 1)
     i += n
     return byte, i
+
 
 def escape_html(input):
     return input.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -29,7 +31,7 @@ def apply_mask(mask: bytearray, payload: bytearray) -> bytearray:
     mask_len = len(mask)  # This should be 4
     payload_len = len(payload)
     masked_payload = bytearray()
-    print(f"mask_len = {mask_len} and payload_len = {payload_len}")
+    # print(f"mask_len = {mask_len} and payload_len = {payload_len}")
 
     for i in range(payload_len):
         masked_byte: int = mask[i % mask_len] ^ payload[i]
@@ -61,14 +63,15 @@ def build_frame(message: str, opcode: int):
         frame += message.encode()
     return frame
 
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
     web_sockets = []
     if os.path.isdir('/root'):
         inDocker = True
-    
+
     full_bytes_sent = b''
-        
+
     full_bytes_sent: bytes = b''
 
     def handle_websocket(self):
@@ -78,7 +81,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             if data != b'':
                 print(
                     f"\r\n------------- WebSocket Data with len = {len(data)} on web_index = {MyTCPHandler.web_sockets.index(self)}----------------")
-                print("\r\n------------- End WebSocket Data 1 ----------------")
+                # print("\r\n------------- End WebSocket Data 1 ----------------")
                 # opcode_mask = b'\x0f'   # 15 = 0000_1111
                 opcode_mask = 15  # 15 = 0000_1111
                 i = 0
@@ -216,18 +219,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                                 print(f"Sending frame of size {len(frame)} with message type {message_type}")
                                 websocket.request.sendall(frame)
                     except Exception as e:
-                        print("\r\nEncountered error :(")
                         print(e)
                 else:
                     # Send chat message
                     response = {'messageType': 'chatMessage', 'username': random_username,
                                 'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
-                    print(f"\r\nresponse = {response} and websocket_len = {len(MyTCPHandler.web_sockets)}\r\n")
                     sys.stdout.flush()
                     sys.stderr.flush()
-                    # store_chatmessage(db, cursor, response)  # Store on database. Look at database.py
-                    add_user(random_username, response, cursor, db) # Store on database
+                    add_user(random_username, response, cursor, db)  # Store on database
                     sys.stdout.flush()
                     sys.stderr.flush()
                     send_opcode = 129
@@ -264,17 +264,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             #     boundary = get_boundary(headers)
             #     content = parse_content(data, boundary)
             # request_type = find_request_type(string_data)   # is either 'get', 'post', 'delete' etc
-            
-            
+
             sys.stdout.flush()
             sys.stderr.flush()
-            
+
             self.full_bytes_sent += self.data
 
             if len(self.data) < 1023:
                 break
-            
-        
+
         print(str(self.full_bytes_sent))
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
@@ -282,8 +280,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if path.lower() == '/websocket':
             MyTCPHandler.web_sockets.append(self)
             self.handle_websocket()
-            
-        
+
+
 if __name__ == "__main__":
     HOST, PORT = '0.0.0.0', 8000
 

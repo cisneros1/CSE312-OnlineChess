@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body>
+<body onload="setup(); welcome();">
     <div class="sidebar open">
         <div class="logo-details">
             <i class='bx bxl-c-plus-plus icon'></i>
@@ -73,19 +73,58 @@
             </div>
         </nav>
 
+
+
         <div class="main">
+            <script type="text/javascript" src="functions.js"></script>
+            <script type="text/javascript" src="../chess/ChessEngine.js"></script>
+
+            <canvas id="chess_canvas" width="1000" height="1000" style="border: 1px solid">
+                canvas here:
+            </canvas>
+
+
+
+
+
             <h1 style="text-align: center">Online Chess</h1>
 
-            <div class="chessboard">
-                <img src="image/chessboard.jpg" class="img-rounded" alt="Chess Board">
+            <div class="chessboard" id="chess_image">
+                <img src="image/chessboard.jpg" class="img-rounded" alt="Chess Board" width="800" height="800">
             </div>
 
             <div class="chatbox" id="chat">
             <script src="functions.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <label for="chat-comment">Chat: </label>
             <input id="chat-comment" type="text" name="comment">
             <button onclick="sendMessage()">Send</button>
             <br />
+
+
+
+
+
+
+
+
+
             <div class="websocket">
             <button onclick="startVideo()">Start My Video</button>
             <br />
@@ -96,8 +135,23 @@
             <video id="otherVideo" autoplay></video>
             </div>
 
-            <div></div>
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
+
+
     </section>
     <script>
         let sidebar = document.querySelector(".sidebar");

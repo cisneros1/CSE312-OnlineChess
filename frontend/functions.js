@@ -122,11 +122,11 @@ function connectWebRTC() {
 
 }
 
+
 function welcome() {
     document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
     console.log('Welcome Ajax called')
     get_chat_history()
-
     // use this line to start your video without having to click a button. Helpful for debugging
     // startVideo();
 }
