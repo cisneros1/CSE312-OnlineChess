@@ -8,6 +8,7 @@ from get import *
 # from template_engine import escape_html
 from database import *
 
+
 # Read n number of bytes and increment i by n
 def read_byte(data, i, n=1):
     byte = bytearray()
@@ -15,6 +16,7 @@ def read_byte(data, i, n=1):
         byte += int_to_bytearray(data[i + index], 1)
     i += n
     return byte, i
+
 
 def escape_html(input):
     return input.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -61,14 +63,15 @@ def build_frame(message: str, opcode: int):
         frame += message.encode()
     return frame
 
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
     web_sockets = []
     if os.path.isdir('/root'):
         inDocker = True
-    
+
     full_bytes_sent = b''
-        
+
     full_bytes_sent: bytes = b''
 
     def handle_websocket(self):
@@ -224,7 +227,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response = json.dumps(response)
                     sys.stdout.flush()
                     sys.stderr.flush()
-                    add_user(random_username, response, cursor, db) # Store on database
+                    add_user(random_username, response, cursor, db)  # Store on database
                     sys.stdout.flush()
                     sys.stderr.flush()
                     send_opcode = 129
@@ -261,17 +264,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             #     boundary = get_boundary(headers)
             #     content = parse_content(data, boundary)
             # request_type = find_request_type(string_data)   # is either 'get', 'post', 'delete' etc
-            
-            
+
             sys.stdout.flush()
             sys.stderr.flush()
-            
+
             self.full_bytes_sent += self.data
 
             if len(self.data) < 1023:
                 break
-            
-        
+
         print(str(self.full_bytes_sent))
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
@@ -279,8 +280,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if path.lower() == '/websocket':
             MyTCPHandler.web_sockets.append(self)
             self.handle_websocket()
-            
-        
+
+
 if __name__ == "__main__":
     HOST, PORT = '0.0.0.0', 8000
 

@@ -6,8 +6,12 @@ class Piece {
         this.captured = false; // If the piece has been captured
         this.has_moved = false; // If a piece has been moved or not
         this.clicked = false; // If a piece is being dragged by the cursor
+        // Array of possible moves
+        this.moves = [];
+        this.attack_moves = [];
+
         this.color = piece_name.startsWith('w') ? "white" : "black"; // Assign "white" or "black" to a piece
-        // The image attached to a piece
+        // The image attached to a piece. This will send a request for the image.
         this.image = new Image();
         this.image.src = '../frontend/image/' + piece_name + '.png';
         let new_piece_size = square_size - 10;
@@ -34,6 +38,38 @@ class Piece {
         }
     }
 
+    // Check if a move is valid
+    // TODO - Test this. This won't work with pawns.
+    validate_move(color, y, x, grid, can_capture=true) {
+        if (!within_grid(y, x)) {
+            return '';
+        }
+        let piece = gridtoPiece(y, x, grid);    // Returns a piece if there's a piece there. Returns '' otherwise.
+        if (color === "white") {
+            if (piece) {
+                if (piece.color === "black" && grid[y][x].startsWith('b') && can_capture) {
+                    return "capture_move";
+                }
+            } else {
+                if (grid[y][x] === ' ') {
+                    return "valid_move";
+                }
+            }
+        } else {
+            if (piece) {
+                if (piece.color === "white" && grid[y][x].startsWith('w') && can_capture) {
+                    return "capture_move";
+                } else {
+                    if (grid[y][x] === ' ') {
+                        return "valid_move";
+                    }
+                }
+            }
+        }
+        // If there's a piece of the same color in grid[y][x] or if a piece can't be taken on that square (only for pawns).
+        return '';
+    }
+
     // This method takes a grid index and converts it to an x and y on the canvas
     grid_to_pos() {
         let board_x = top_left_coord[1];
@@ -50,6 +86,27 @@ class Piece {
 class Pawn extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
+    }
+
+    // TODO - Update to include capture moves
+    generateMoves(grid) {
+        let moves = [[-1, 0], [-2, 0]]
+        if (this.color === "white") {
+            if (within_grid(this.grid_y - 1, this.grid_x) && chess_grid[this.grid_y - 1][this.grid_x] === " ") {
+                this.moves.push([this.grid_y - 1, this.grid_x]);
+            } else if (!this.has_moved && within_grid(this.grid_y - 2, this.grid_x) && chess_grid[this.grid_y - 2][this.grid_x] === " ") {
+                this.moves.push([this.grid_y - 2][this.grid_x]);
+                this.has_moved = true;
+            }
+
+        } else {
+            if (within_grid(this.grid_y + 1, this.grid_x) && chess_grid[this.grid_y + 1][this.grid_x] === " ") {
+                this.moves.push([this.grid_y + 1, this.grid_x]);
+            } else if (!this.has_moved && within_grid(this.grid_y + 2, this.grid_x) && chess_grid[this.grid_y + 2][this.grid_x] === " ") {
+                this.moves.push([this.grid_y + 2][this.grid_x]);
+                this.has_moved = true;
+            }
+        }
     }
 }
 
@@ -101,16 +158,21 @@ class GameState {
             instance.cursor_x = e.offsetX;
             instance.cursor_y = e.offsetY;
         });
+        this.board_state_stack = [];
+        this.board_state = {
+            turn: "white",
+            total_turns: 0,
+
+        }
 
         // TODO - The event handlers below are unfinished.
         // Listen for mouse clicks
         window.addEventListener('mousedown', function (e) {
             instance.last_clicked = [e.offsetY, e.offsetX];
-            console.log(instance.last_clicked);
             let square_clicked = coordToGrid(e.offsetX, e.offsetY);
             // If a piece was clicked. The empty string is falsy.
             if (square_clicked) {
-                let piece_clicked = instance.gridtoPiece(square_clicked[0], square_clicked[1]);
+                let piece_clicked = gridtoPiece(square_clicked[0], square_clicked[1], instance.grid);
                 if (piece_clicked) {
                     piece_clicked.clicked = true;
                 }
@@ -118,8 +180,9 @@ class GameState {
         });
         // Listen for mouse release. This is where we make a chess move
         window.addEventListener('mouseup', function (e) {
+            // Set all pieces to the unclicked state.
             instance.last_clicked = [0, 0];
-            for (let piece of instance.pieces){
+            for (let piece of instance.pieces) {
                 piece.clicked = false;
             }
         });
@@ -128,24 +191,13 @@ class GameState {
         this.updateGame();
     }
 
-    // Given an x and y grid index return the corresponding chess on that square. Returns '' if no piece was clicked.
-    gridtoPiece(y, x) {
-        let piece = '';
-        for (let piece of this.pieces) {
-            if (piece.grid_y === y && piece.grid_x === x && this.grid[y][x] === piece.piece_name) {
-                return piece;
-            }
-        }
-        return piece;
-    }
     // Display all of the chess pieces
     // TODO - Check if a piece is captured or not.
     displayAllPieces() {
         for (let piece of this.pieces) {
-            if (piece.clicked && !piece.captured){
+            if (piece.clicked && !piece.captured) {
                 piece.display_piece(this.context, [this.cursor_x, this.cursor_y]);
-            }
-            else {
+            } else {
                 piece.display_piece(this.context);
             }
         }
@@ -181,6 +233,7 @@ const piece_dim = [65, 65];     // width and height of each piece
 const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
 console.log("Board Width: " + board_size);
+let all_pieces = [];    // Do not change this.
 
 // Display a chess on the board
 function displayImage(piece_name, x, y, height, width) {
@@ -194,6 +247,22 @@ function displayImage(piece_name, x, y, height, width) {
         context.drawImage(image, x, y);
     };
     return image;
+}
+
+// Given an x and y grid index return the corresponding chess on that square. Returns '' if no piece was clicked.
+function gridtoPiece(y, x, grid) {
+    let piece = '';
+    for (let piece of all_pieces) {
+        if (piece.grid_y === y && piece.grid_x === x && grid[y][x] === piece.piece_name) {
+            return piece;
+        }
+    }
+    return piece;
+}
+
+// Within bounds.
+function within_grid(y, x) {
+    return x >= 0 && x < chess_grid.length && y >= 0 && y < chess_grid.length;
 }
 
 function within_range(value, min, max) {
@@ -230,10 +299,9 @@ function clearAll(context) {
 }
 
 function setup() {
-    console.log("Test 1");
+    console.log("Called setup()");
     clearBoard();    // Display the board
     // Begin initializing the chess pieces
-    let all_pieces = [];
     for (let i = 0; i < 8; i++) {
         let white_pawn = new Pawn('w_pawn', [6, i]);
         let black_pawn = new Pawn('b_pawn', [1, i]);
