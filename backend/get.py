@@ -1,5 +1,5 @@
 from typing import Any
-from backend.database import retrieve_chathistory
+from database import retrieve_chathistory
 from database import *
 import os, random
 import json
