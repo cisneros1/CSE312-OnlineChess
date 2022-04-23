@@ -9,7 +9,7 @@
 }
 
 .sidebar {
-    background-image: url('image/sidebar.jpg');
+    background-color: #55321e;
     position: fixed;
     left: 0;
     top: 0;
@@ -259,8 +259,8 @@
 }
 
 .home-section {
-    /* background-image: url('image/signup_background.jpg');   */
-    background-color: #5f051b;
+    background-image: url('image/back3.jpg');
+    /* background-color: #5f051b; */
     color: white;
     text-align: center;
     position: relative;
