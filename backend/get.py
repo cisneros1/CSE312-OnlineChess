@@ -19,21 +19,38 @@ def handle_get(self, received_data):
 
     if path == '/':
         index(self, received_data)
+        
+    elif path == '/signin':
+        signin(self, received_data)
+        
+    elif path == '/signup':
+        signup(self, received_data)
+        
+        
 
     elif path == '/websocket':
         websocket(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
+        
+        
 
     elif path == '/functions.js':
         javascript(self)
 
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
+        
+        
 
-    elif path == '/style.css':
-        style(self)
+    elif '.css' in path:
+        style(self, received_data)
+
+
+
+
+
 
     elif '/image/' in path:
         image(self, path)
@@ -41,7 +58,6 @@ def handle_get(self, received_data):
     elif '/favicon' in path:
         favicon(self, path)
     else:
-
         print('Unrecognized Request, sending 404')
 
 
@@ -54,7 +70,27 @@ def index(self, received_data):
     length = os.path.getsize(file_path['index.html'])
 
     send_200(self, length, mimetype, body)
+    
+def signin(self, received_data):
+    file_path = file_paths(self)
+    
+    with open(file_path['signin.html'], 'rb') as content:
+        body = content.read()
+    mimetype = 'text/html; charset=utf-8'
+    length = os.path.getsize(file_path['signin.html'])
+    
+    send_200(self, length, mimetype, body)
 
+def signup(self, received_data):
+    file_path = file_paths(self)   
+    with open(file_path['signup.html'], 'rb') as content:
+        body = content.read()
+    mimetype = 'text/html; charset=utf-8'
+    length = os.path.getsize(file_path['signup.html'])
+
+    send_200(self, length, mimetype, body)
+    
+    
 
 def websocket(self, received_data):
     username = "User" + str(random.randint(0, 1000))
@@ -65,12 +101,7 @@ def websocket(self, received_data):
     return_key = hashlib.sha1(key).digest()
     return_key = base64.b64encode(return_key)
     send_101(self, return_key)
-    # with open("status.txt", 'w') as f:
-    #     f.write("upgraded")
-    # websocket_server(self, username)
 
-
-# path = '/chathistory'
 def chat(self, received_data):
     # Returns list of comments stored in the database
     chat_array = retrieve_chathistory(cursor, db)
@@ -105,11 +136,17 @@ def chess_engine(self):
     send_200(self, len(body), mimetype, body)
 
 
-def style(self):
-    mimetype = 'text/css; charset=utf-8'
+def style(self, received_data):
+    # Get correct filepath
     file_path = file_paths(self)
-    filename = str(file_path["style.css"])
-    body = ''
+    if 'signin' in str(received_data):
+        filename = file_path['signin.css']
+    elif 'signup' in str(received_data):
+        filename = file_path['signup.css']
+    else:
+        filename = file_path['style.css']
+    
+    mimetype = 'text/css; charset=utf-8'
 
     with open(filename, 'rb') as content:
         body = content.read()
