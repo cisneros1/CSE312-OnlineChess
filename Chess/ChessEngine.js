@@ -113,8 +113,10 @@ class Piece {
         context.save();
         context.globalAlpha = 0.65;
         for (let move of this.moves) {
-            if (this.displayMovesHelper(this.attack_moves, move)) {
-                context.fillStyle = "#f52626";
+            // If a move is also a capture move then make the square red.
+            let in_attack_moves = this.attack_moves.find(attack_move => move[0] === attack_move[0] && move[1] === attack_move[1]);
+            if (in_attack_moves) {
+                context.fillStyle = "#be2a2a";
             } else {
                 context.fillStyle = "#4ea8ff";
             }
@@ -122,20 +124,6 @@ class Piece {
             context.fillRect(top_left_coord[1] + move[1] * square_size + offset_x, top_left_coord[0] + move[0] * square_size, square_size, square_size);
         }
         context.restore();
-    }
-
-    // Check if a [y,x] element in an array.
-    displayMovesHelper(array, query_elem) {
-        let y_pos = query_elem[0];
-        let x_pos = query_elem[1];
-        for (let elem of array) {
-            let elem_y = elem[0];
-            let elem_x = elem[1];
-            if (y_pos === elem_y && x_pos === elem_x) {
-                return true;
-            }
-        }
-        return false;
     }
 }
 
@@ -304,13 +292,9 @@ class GameState {
         this.generateAllMoves();
         this.game_started = true;
         this.your_turn = false;
+        this.in_check = false;
         this.player_color = ''; // Will be set to 'white' or 'black'
         this.board_state_stack = [];    // To roll back turns. To check for checks, stalemates and checkmates.
-        this.board_state = {
-            turn: "white",
-            total_turns: 0,
-
-        };
 
         // TODO - The event handlers below are unfinished.
         // Listen for mouse clicks
@@ -332,10 +316,26 @@ class GameState {
             for (let piece of instance.pieces) {
                 piece.clicked = false;
             }
+
         });
         console.log("Created Game State");
         // Begin main loop
         this.updateGame();
+    }
+
+    // Returns true if your king is in check
+    inCheck() {
+        let opposite_color = this.player_color === 'white' ? 'black' : 'white';
+        let king = this.pieces.find(piece => piece instanceof King && piece.color === this.player_color);
+        for (let piece of this.pieces) {
+            if (piece.color === opposite_color) {
+                let in_check = piece.attack_moves.find(move => move[0] === king.grid_y && move[1] === king.grid_x);
+                if (in_check) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // TODO - untested.
@@ -343,10 +343,11 @@ class GameState {
     saveBoardState() {
         let board_state = {
             grid: copy2d(this.grid),
+            in_check: this.in_check,
             your_turn: this.your_turn,
             piece_states: new Map()
         }
-        for (let piece of this.pieces){
+        for (let piece of this.pieces) {
             let piece_state = {
                 grid_y: piece.grid_y,
                 grid_x: piece.grid_x,
@@ -363,8 +364,9 @@ class GameState {
     // Changes the state of the game
     loadBoardState(board_state) {
         this.grid = board_state.grid;
+        this.in_check = board_state.in_check;
         this.your_turn = board_state.your_turn;
-        for (let piece of this.pieces){
+        for (let piece of this.pieces) {
             let piece_state = board_state.piece_states.get(piece);
             piece.grid_y = piece_state.grid_y;
             piece.grid_x = piece_state.grid_x;
