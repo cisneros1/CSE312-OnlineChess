@@ -272,7 +272,7 @@ class King extends Piece {
 // Saves the state of the board
 // Will be used to check for checks, check mates, and rolling back turns
 class GameState {
-    constructor(grid, pieces) {
+    constructor(grid, pieces, your_turn) {
         this.grid = grid;
         console.log(copy2d(this.grid));
 
@@ -291,7 +291,7 @@ class GameState {
         // TODO - This will need to be changed at some point. Websocket stuff
         this.generateAllMoves();
         this.game_started = true;
-        this.your_turn = false;
+        this.your_turn = your_turn;
         this.in_check = false;
         this.player_color = ''; // Will be set to 'white' or 'black'
         this.board_state_stack = [];    // To roll back turns. To check for checks, stalemates and checkmates.
@@ -313,10 +313,13 @@ class GameState {
         window.addEventListener('mouseup', function (e) {
             // Set all pieces to the un-clicked state.
             instance.last_clicked = [0, 0];
+            let piece_clicked = this.all_pieces.find(piece => piece.clicked);
+            if (instance.your_turn && piece_clicked) {
+                ;
+            }
             for (let piece of instance.pieces) {
                 piece.clicked = false;
             }
-
         });
         console.log("Created Game State");
         // Begin main loop
@@ -336,6 +339,32 @@ class GameState {
             }
         }
         return false;
+    }
+
+    // This will remove moves that put the player in check
+    filterMoves() {
+        ;
+    }
+
+    // This method will make a move.
+    MakeMove(piece, move) {
+        let move_y = move[0];
+        let move_x = move[1];
+        this.grid[piece.grid_y][piece.grid_x] = ' ';
+        piece.grid_y = move_y;
+        piece.grid_x = move_x;
+
+        let capture_move = piece.attack_moves.find(attack_move => move[0] === attack_move[0] && move[1] === attack_move[1]);
+        let captured_piece = gridtoPiece(move_y, move_x, this.grid);
+        if (capture_move) {
+            captured_piece.captured = true;
+            this.grid[captured_piece.grid_y][captured_piece.grid_x] = piece.piece_name;
+            captured_piece.grid_y = -1;
+            captured_piece.grid_x = -1;
+
+        } else {
+            this.grid[move_y][move_x] = piece.piece_name;
+        }
     }
 
     // TODO - untested.
@@ -392,14 +421,16 @@ class GameState {
     // Debug method - Generate all moves
     generateAllMoves() {
         for (let piece of this.pieces) {
-            piece.generateMoves(this.grid);
+            if (!piece.captured) {
+                piece.generateMoves(this.grid);
+            }
         }
     }
 
     // TODO - Update this to not include piece that have been captured and only display if the game has started and it's the player turn
     displayAllMoves() {
         for (let piece of this.pieces) {
-            if (piece.clicked) {
+            if (piece.clicked && !piece.captured) {
                 piece.displayMoves(this.context);
             }
             // piece.displayMoves(this.context);
