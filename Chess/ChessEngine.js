@@ -313,10 +313,11 @@ class GameState {
         window.addEventListener('mouseup', function (e) {
             // Set all pieces to the un-clicked state.
             instance.last_clicked = [0, 0];
-            let piece_clicked = this.all_pieces.find(piece => piece.clicked);
-            if (instance.your_turn && piece_clicked) {
-                ;
-            }
+            // TODO - This line is causing issues :(
+            // let piece_clicked = this.all_pieces.find(piece => piece.clicked === true);
+            // if (instance.your_turn && piece_clicked) {
+            //     ;
+            // }
             for (let piece of instance.pieces) {
                 piece.clicked = false;
             }
@@ -343,7 +344,18 @@ class GameState {
 
     // This will remove moves that put the player in check
     filterMoves() {
-        ;
+        let saved_board = this.saveBoardState();
+        let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
+        for (let piece of player_pieces){
+            for (const move of piece.moves){
+                this.MakeMove(piece, move);
+                let in_check = this.in_check();
+                if (in_check){
+                    ;
+                }
+                this.loadBoardState(saved_board);
+            }
+        }
     }
 
     // This method will make a move.
@@ -385,7 +397,7 @@ class GameState {
                 moves: copy2d(piece.moves),
                 attack_moves: copy2d(piece.attack_moves)
             }
-            board_state.piece_states.set(piece, piece_state);
+            board_state.piece_states.set(piece, piece_state);   // Set a Mapping of (piece => piece_state)
         }
         return board_state;
     }
