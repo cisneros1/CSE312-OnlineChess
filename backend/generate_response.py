@@ -21,7 +21,7 @@ def send_200(self, length, mimetype, body):
     self.request.sendall(response)
     
 
-def send_200_with_cookie(self, length, mimetype, body, cookie: int):
+def send_200_with_cookie(self, length, mimetype, body, cookie: str):
     nosniff = "X-Content-Type-Options:nosniff"
 
     response = b"HTTP/1.1 200 OK"

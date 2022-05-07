@@ -1,6 +1,6 @@
 from typing import Any
-from database import retrieve_chathistory
-from database import *
+# from database import retrieve_chathistory
+from backend.database import *
 import os, random
 import json
 import hashlib
@@ -11,7 +11,7 @@ import bcrypt
 from generate_response import *
 from filepaths import file_paths
 from websocket import websocket_server
-from template_engine import *
+from backend.template_engine import *
 
 
 # DEAL WITH ONLY GET REQUESTS
@@ -25,7 +25,8 @@ def handle_get(self, received_data):
         index(self, received_data)
         
     elif path == '/login' or path == '/logged_in':
-        (self, received_data)
+        # (self, received_data)
+        send_404(self)
         
     elif path == '/signin':
         signin(self)
@@ -92,10 +93,14 @@ def signin(tcp_handler):
     tcp_handler.valid_tokens.append(token)
     # store token and replace in html
     file_path = file_paths(tcp_handler)
-    with open(file_path['signin.html'], 'rb') as content:
-        body = content.read()
+    # with open(file_path['signin.html'], 'rb') as content:
+    #     body = content.read()
+
+    template_data = {'token', token}
+    body = render_template(file_path, template_data)
     decoded = body.decode()
     decoded = decoded.replace('{{token}}', token)
+    # decoded = decoded.replace('{{auth_token}}', auth_token)
     body = decoded.encode()
     mimetype = 'text/html; charset=utf-8'
     length = len(body)
@@ -114,6 +119,7 @@ def signup(tcp_handler):
     decoded = body.decode()
     decoded = decoded.replace('{{token}}', token)
     body = decoded.encode()
+
     mimetype = 'text/html; charset=utf-8'
     length = len(body)
 

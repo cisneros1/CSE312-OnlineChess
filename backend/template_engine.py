@@ -2,22 +2,18 @@ from urllib.parse import unquote
 
 
 def render_template(html_filename, data):
-
     with open(html_filename) as html_file:
         template = html_file.read()
-        template = replace_placeholder(template, data)
+        template = replace_placeholders(template, data)
         template = render_loop(template, data)
         return template
 
 
-def replace_placeholder(template, data):
+def replace_placeholders(template, data):
     replaced_template = template
     for placeholder in data.keys():
         if isinstance(data[placeholder], str):
-            replaced_template = replaced_template.replace(
-                "{{"+placeholder+"}}", data[placeholder])
-            # print('Replacing ' + str(placeholder) + ' with ' + str(replaced_template))
-
+            replaced_template = replaced_template.replace("{{" + placeholder + "}}", data[placeholder])
     return replaced_template
 
 
@@ -33,13 +29,11 @@ def render_loop(template, data):
         loop_data = data["loop_data"]
 
         loop_content = ""
+
         for single_piece_of_content in loop_data:
-            loop_content += replace_placeholder(loop_template,
-                                                single_piece_of_content)
+            loop_content += replace_placeholders(loop_template, single_piece_of_content)
 
-        final_content = template[:start_index] + \
-            loop_content + template[end_index+len(loop_end_tag):]
-
+        final_content = template[:start_index] + loop_content + template[end_index + len(loop_end_tag):]
         return final_content
 
 

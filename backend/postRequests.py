@@ -1,9 +1,11 @@
-import backend.database as db
+# import backend.database as db
+from backend.database import *
 import secrets
 import bcrypt
-from template_engine import *
-from generate_response import *
-from filepaths import *
+# from template_engine import *
+from backend.template_engine import *
+from backend.generate_response import *
+from backend.filepaths import *
 
 
 def handle_post(tcp_handler, received_data):
@@ -20,8 +22,7 @@ def handle_post(tcp_handler, received_data):
     else:
         print('Unrecognized Post Request, sending 404')
         send_404(tcp_handler)
-        
-        
+
 
 # This function is not called
 def chat(tcp_handler, received_data: bytes):
@@ -29,9 +30,9 @@ def chat(tcp_handler, received_data: bytes):
     print('chat')
     username = ""
     comment = escape_html(received_data.split(b'name="comment"\r\n\r\n')[
-        1].split(b'\r\n')[0].decode())
+                              1].split(b'\r\n')[0].decode())
     token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
-                        1].split(b'\r\n')[0].decode())
+                            1].split(b'\r\n')[0].decode())
 
     is_token_valid: bool = False
     for t in tcp_handler.valid_tokens:
@@ -79,19 +80,23 @@ def login(tcp_handler, received_data: bytes):
         json_users = (db.list_all()).copy()
         print(json_users)
         # print('List is: ' + str(json_users))
-        userfound = False
-        for json_dict in json_users:
-            if username == json_dict['username']:
-                encoded_pwd = password.encode()
-                hashed = bcrypt.hashpw(encoded_pwd, json_dict['salt'])
-                print('Comparing: ' + str(encoded_pwd) + ' with ' + str(hashed))
-                if bcrypt.checkpw(json_dict['password'].encode(), hashed):
-                    userfound = True
-                    print('User has been found in the database')
-        if userfound == False:
+
+        auth_token: str = secrets.token_hex(nbytes=80)
+        auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), bcrypt.gensalt())
+        userfound = authenticate_login(db, cursor, username, password, auth_token_hashed)
+        # for json_dict in json_users:
+        #     if username == json_dict['username']:
+        #         encoded_pwd = password.encode()
+        #         hashed = bcrypt.hashpw(encoded_pwd, json_dict['salt'])
+        #         print('Comparing: ' + str(encoded_pwd) + ' with ' + str(hashed))
+        #         if bcrypt.checkpw(json_dict['password'].encode(), hashed):
+        #             userfound = True
+        #             print('User has been found in the database')
+        if not userfound:
             print('That user does not exist')
             send_404(tcp_handler)
         else:
+            # if user found
             tcp_handler.usernames.append(username)
             new_token = secrets.token_urlsafe(32)
             tcp_handler.valid_tokens.append(new_token)
@@ -101,29 +106,14 @@ def login(tcp_handler, received_data: bytes):
                 body = content.read()
             decoded = body.decode()
             decoded = decoded.replace('{{token}}', new_token)
-            decoded = decoded.replace('{{username}}', username)
+            # decoded = decoded.replace('{{username}}', username)
+            # response = b"HTTP/1.1 301 Moved Permanently\r\n"
+            cookie = f"Set-Cookie: user={auth_token}; HttpOnly; Max-Age=3600\r\n"
+            mimetype = 'text/html; charset=utf-8'
+            length = len(body)
 
-            if 'Cookie' in str(received_data):
-                print(str(received_data))
-                cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0]
-                cookie = cookie.decode()
-                print('Recieved Cookie: ' + str(cookie))
-                new_cookie = int(cookie)
-                new_cookie += 1
-                decoded = decoded.replace('{{cookie}}', str(new_cookie))
-                body = decoded.encode()
-                mimetype = 'text/html; charset=utf-8'
-                length = len(body)
-                send_200_with_cookie(tcp_handler, length,
-                                     mimetype, body, new_cookie)
-            else:
-                cookie = 1
-                decoded = decoded.replace('{{cookie}}', cookie)
-                body = decoded.encode()
-                mimetype = 'text/html; charset=utf-8'
-                length = len(body)
-                send_200_with_cookie(tcp_handler, length,
-                                     mimetype, body, cookie)
+            send_200_with_cookie(tcp_handler, length,
+                                 mimetype, body, cookie)
 
     else:
         send_404(tcp_handler)
@@ -132,18 +122,16 @@ def login(tcp_handler, received_data: bytes):
 
 def signup(tcp_handler, received_data):
     print('-------------------------')
-    token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
-                        1].split(b'\r\n')[0].decode())
-    username = escape_html(received_data.split(b'name="username"\r\n\r\n')[
-                           1].split(b'\r\n')[0].decode())
-    password = escape_html(received_data.split(b'name="password"\r\n\r\n')[
-                           1].split(b'\r\n')[0].decode())
-    cookie = escape_html(received_data.split(b'Cookie: ')
-                         [1].split(b'\r\n')[0].decode())
+    token = received_data.split(b'name="xsrf_token"\r\n\r\n')[
+        1].split(b'\r\n')[0].decode()
+    username = received_data.split(b'name="username"\r\n\r\n')[
+        1].split(b'\r\n')[0].decode()
+    password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
-    print('Cookie:' + cookie)
+    # print('Cookie:' + cookie)
     # Check if token is valid
     is_token_valid: bool = False
 
@@ -154,18 +142,21 @@ def signup(tcp_handler, received_data):
 
     if is_token_valid:
         # check password requirements
-        print('Hasing and Storing password...')
-        encoded_pwd = password.encode()
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(encoded_pwd, salt)
-        print(salt)
-        print(hashed)
-        # store user
-        id = db.get_next_id()
-        user_dict = {"_id": id, "username": username,
-                     "password": password, "salt": salt}
-        db.insert(user_dict)
-        print('The following has been assed to users: ' + str(user_dict))
+        if username and password:
+            hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+            register_user(db, cursor, username, password)
+        # print('Hasing and Storing password...')
+        # encoded_pwd = password.encode()
+        # salt = bcrypt.gensalt()
+        # hashed = bcrypt.hashpw(encoded_pwd, salt)
+        # print(salt)
+        # print(hashed)
+        # # store user
+        # id = db.get_next_id()
+        # user_dict = {"_id": id, "username": username,
+        #              "password": password, "salt": salt}
+        # db.insert(user_dict)
+        # print('The following has been assed to users: ' + str(user_dict))
 
         new_token = secrets.token_urlsafe(32)
         tcp_handler.valid_tokens.append(new_token)
