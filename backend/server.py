@@ -5,8 +5,8 @@ import os
 import secrets
 from parsers import *
 from get import *
-# from template_engine import escape_html
 from database import *
+from postRequests import *
 
 
 # Read n number of bytes and increment i by n
@@ -276,6 +276,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print(str(self.full_bytes_sent))
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
+        
+        elif 'POST' in str(self.full_bytes_sent):
+            handle_post(self, self.full_bytes_sent)
 
         if path.lower() == '/websocket':
             MyTCPHandler.web_sockets.append(self)
