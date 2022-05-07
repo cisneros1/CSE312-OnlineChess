@@ -66,12 +66,13 @@ def build_frame(message: str, opcode: int):
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     clients = []
-    web_sockets = []
+    registered_users = {}    # username -> self
     if os.path.isdir('/root'):
         inDocker = True
-        
-    usernames = []
-    valid_tokens = [] # The same for each user
+
+    # usernames = []
+    xsrf_token = {}
+    valid_tokens = []  # The same for each user
 
     full_bytes_sent = b''
 
@@ -279,7 +280,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print(str(self.full_bytes_sent))
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
-        
+
         elif 'POST' in str(self.full_bytes_sent):
             handle_post(self, self.full_bytes_sent)
 

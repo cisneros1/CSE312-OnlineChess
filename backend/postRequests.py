@@ -6,6 +6,8 @@ import bcrypt
 from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
+# from backend.server import MyTCPHandler
+from backend.server import MyTCPHandler
 
 
 def handle_post(tcp_handler, received_data):
@@ -97,6 +99,7 @@ def login(tcp_handler, received_data: bytes):
             send_404(tcp_handler)
         else:
             # if user found
+
             tcp_handler.usernames.append(username)
             new_token = secrets.token_urlsafe(32)
             tcp_handler.valid_tokens.append(new_token)
@@ -144,7 +147,7 @@ def signup(tcp_handler, received_data):
         # check password requirements
         if username and password:
             hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
-            register_user(db, cursor, username, password)
+            register_user(db, cursor, username, hashed_password)
         # print('Hasing and Storing password...')
         # encoded_pwd = password.encode()
         # salt = bcrypt.gensalt()
@@ -157,7 +160,7 @@ def signup(tcp_handler, received_data):
         #              "password": password, "salt": salt}
         # db.insert(user_dict)
         # print('The following has been assed to users: ' + str(user_dict))
-
+        # MyTCPHandler.registered_users[username] = tcp_handler   # Associate a
         new_token = secrets.token_urlsafe(32)
         tcp_handler.valid_tokens.append(new_token)
         file_path = file_paths(tcp_handler)

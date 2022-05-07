@@ -12,7 +12,8 @@ from generate_response import *
 from filepaths import file_paths
 from websocket import websocket_server
 from backend.template_engine import *
-
+from backend.server import MyTCPHandler
+from backend.parsers import parse_request
 
 # DEAL WITH ONLY GET REQUESTS
 
@@ -23,30 +24,30 @@ def handle_get(self, received_data):
 
     if path == '/':
         index(self, received_data)
-        
+
     elif path == '/login' or path == '/logged_in':
         # (self, received_data)
         send_404(self)
-        
+
     elif path == '/signin':
         signin(self)
-        
+
     elif path == '/signup':
         signup(self)
-        
+
     elif path == '/websocket':
         websocket(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
-        
+
     elif path == '/functions.js':
         javascript(self)
 
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
-        
-        
+
+
     elif '.css' in path:
         style(self, received_data)
 
@@ -84,7 +85,7 @@ def index(self, received_data: bytes):
         decoded = decoded.replace('{{cookie}}', str(cookie))
         body = decoded.encode()
         send_200_with_cookie(self, length, mimetype, body, cookie)
-    
+
 
 # Displayes singin from with generated token
 def signin(tcp_handler):
@@ -126,16 +127,32 @@ def signup(tcp_handler):
     send_200(tcp_handler, length, mimetype, body)
 
 
-
 def websocket(self, received_data):
-    username = "User" + str(random.randint(0, 1000))
-    print('User: ' + username + ' has opened a websocket connection')
-    key = received_data.split(b'Sec-WebSocket-Key: ')[1]
-    key = key.split(b'\r\n')[0]
-    key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
-    return_key = hashlib.sha1(key).digest()
-    return_key = base64.b64encode(return_key)
-    send_101(self, return_key)
+    path, headers, content = parse_request(received_data)
+    set_cookies = filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers)
+    authenticated = ''
+    if set_cookies:
+        header_content_list = set_cookies[1].split(b';')
+        for directive in header_content_list:
+            directive_name, directive_content = directive.split(b'=')
+            directive_name = directive_name.strip()
+            if directive_name == b'homepage_cookie':
+                visits = int(directive_content.strip()) + 1
+            elif directive_name == b'user':
+                user_token = directive_content.strip()
+                authenticated = is_authenticated(self.db, self.cursor, user_token)  # Check query token with hash
+    # authenticated is the username
+    if authenticated:
+            MyTCPHandler.registered_users[authenticated] = self
+        username = "User" + str(random.randint(0, 1000))
+        print('User: ' + username + ' has opened a websocket connection')
+        key = received_data.split(b'Sec-WebSocket-Key: ')[1]
+        key = key.split(b'\r\n')[0]
+        key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+        return_key = hashlib.sha1(key).digest()
+        return_key = base64.b64encode(return_key)
+        send_101(self, return_key)
+
 
 def chat(self, received_data):
     # Returns list of comments stored in the database
@@ -180,7 +197,7 @@ def style(self, received_data):
         filename = file_path['signup.css']
     else:
         filename = file_path['style.css']
-    
+
     mimetype = 'text/css; charset=utf-8'
 
     with open(filename, 'rb') as content:
