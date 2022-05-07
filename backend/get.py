@@ -5,6 +5,7 @@ import os, random
 import json
 import hashlib
 import base64
+import secrets
 
 from generate_response import send_200, send_101, send_301
 from filepaths import file_paths
@@ -19,6 +20,9 @@ def handle_get(self, received_data):
 
     if path == '/':
         index(self, received_data)
+        
+    elif path == '/login' or path == '/logged_in':
+        send_404()
         
     elif path == '/signin':
         signin(self, received_data)
@@ -71,24 +75,41 @@ def index(self, received_data):
 
     send_200(self, length, mimetype, body)
     
-def signin(self, received_data):
-    file_path = file_paths(self)
     
+
+def signin(tcp_handler):
+    # generate token
+    token = secrets.token_urlsafe(32)
+    tcp_handler.valid_tokens.append(token)
+    # store token and replace in html
+    file_path = file_paths(tcp_handler)
     with open(file_path['signin.html'], 'rb') as content:
         body = content.read()
+    decoded = body.decode()
+    decoded = decoded.replace('{{token}}', token)
+    body = decoded.encode()
     mimetype = 'text/html; charset=utf-8'
-    length = os.path.getsize(file_path['signin.html'])
-    
-    send_200(self, length, mimetype, body)
+    length = len(body)
+    send_200(tcp_handler, length, mimetype, body)
 
-def signup(self, received_data):
-    file_path = file_paths(self)   
+
+# Displayes signup from with generated token
+def signup(tcp_handler):
+    # generate token
+    token = secrets.token_urlsafe(32)
+    tcp_handler.valid_tokens.append(token)
+    # store token and replace in html
+    file_path = file_paths(tcp_handler)
     with open(file_path['signup.html'], 'rb') as content:
         body = content.read()
+    decoded = body.decode()
+    decoded = decoded.replace('{{token}}', token)
+    body = decoded.encode()
     mimetype = 'text/html; charset=utf-8'
-    length = os.path.getsize(file_path['signup.html'])
+    length = len(body)
 
-    send_200(self, length, mimetype, body)
+    send_200(tcp_handler, length, mimetype, body)
+
     
     
 

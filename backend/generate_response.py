@@ -52,3 +52,12 @@ def send_403(self):
     response = b"HTTP/1.1 403 Forbidden"
     response += b"\r\nContent-Length: 0"
     self.request.sendall(response)
+
+
+def send_404(self):
+    response = b"HTTP/1.1 404 Not Found"
+    response += b"\r\nContent-Type: text/plain"
+    response += b"\r\nContent-Length: 36"
+    response += b"\r\nThe requested content does not exist"
+    response += b"\r\nX-content-type-Options: nosniff"
+    self.request.sendall(response)

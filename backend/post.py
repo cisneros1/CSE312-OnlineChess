@@ -4,8 +4,6 @@ import database as db
 from generate_response import send_200, send_303
 from filepaths import file_paths
 
-# DEAL WITH ONLY GET REQUESTS
-
 
 def handle_messages(self, received_data: bytes):
     print("---> POST ENTERED")
@@ -77,3 +75,5 @@ def escape_html(received_data: bytes):
     
     print("Message after escaping: " + message)
     return message
+
+
