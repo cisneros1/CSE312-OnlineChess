@@ -20,6 +20,20 @@ def send_200(self, length, mimetype, body):
     response += body #should be in bytes
     self.request.sendall(response)
     
+
+def send_200_with_cookie(self, length, mimetype, body, cookie: int):
+    nosniff = "X-Content-Type-Options:nosniff"
+
+    response = b"HTTP/1.1 200 OK"
+    response += b"\r\nContent-Length: " + str(length).encode()
+    response += b"\r\nContent-Type: " + mimetype.encode()
+    response += b"\r\nSet-Cookie: " + str(cookie).encode() + b'; Max-Age: 3600'
+    response += b"\r\n"
+    response += nosniff.encode()
+    response += b"\r\n\r\n"
+    response += body  # should be in bytes
+    self.request.sendall(response)
+    
 def send_201(self):
     nosniff = "X-Content-Type-Options:nosniff"
 
