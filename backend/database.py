@@ -14,11 +14,20 @@ db = mysql.connect(
 cursor = db.cursor(prepared=True)
 # This create the table with an auto incremented id
 # We can use the 'TEXT' type for string and 'BLOB' to store bytes (for images)
+# This stores the chat history
 cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                     username TEXT,
                     json_message TEXT,
                     id INT AUTO_INCREMENT PRIMARY KEY)
                     """)
+
+
+cursor.execute("""CREATE TABLE IF NOT EXISTS registered_users (
+                    username TEXT,
+                    password BLOB,
+                    authentication_token BLOB,
+                    id INT AUTO_INCREMENT PRIMARY_KEY
+)""")
 
 show_databases = "SHOW DATABASES"   # a query to return all databases
 cursor.execute(show_databases)  # Should only display 'CSE312-Project'
