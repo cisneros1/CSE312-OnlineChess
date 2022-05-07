@@ -7,7 +7,7 @@ import hashlib
 import base64
 import secrets
 
-from generate_response import send_200, send_101, send_301
+from generate_response import *
 from filepaths import file_paths
 from websocket import websocket_server
 
@@ -22,7 +22,7 @@ def handle_get(self, received_data):
         index(self, received_data)
         
     elif path == '/login' or path == '/logged_in':
-        send_404()
+        send_404(self, received_data)
         
     elif path == '/signin':
         signin(self, received_data)
@@ -50,10 +50,6 @@ def handle_get(self, received_data):
 
     elif '.css' in path:
         style(self, received_data)
-
-
-
-
 
 
     elif '/image/' in path:

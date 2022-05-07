@@ -24,36 +24,36 @@ def handle_post(tcp_handler, received_data):
 # This function is not called
 
 
-def chat(tcp_handler, received_data: bytes):
-    # At this point user has been checked
-    print('chat')
-    username = ""
-    comment = escape_html(received_data.split(b'name="comment"\r\n\r\n')[
-        1].split(b'\r\n')[0].decode())
-    token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
-                        1].split(b'\r\n')[0].decode())
+# def chat(tcp_handler, received_data: bytes):
+#     # At this point user has been checked
+#     print('chat')
+#     username = ""
+#     comment = escape_html(received_data.split(b'name="comment"\r\n\r\n')[
+#         1].split(b'\r\n')[0].decode())
+#     token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
+#                         1].split(b'\r\n')[0].decode())
 
-    is_token_valid: bool = False
-    for t in tcp_handler.valid_tokens:
-        if t == token:
-            is_token_valid = True
-            print('Token is valid')
+#     is_token_valid: bool = False
+#     for t in tcp_handler.valid_tokens:
+#         if t == token:
+#             is_token_valid = True
+#             print('Token is valid')
 
-    if is_token_valid:
-        # check database for username and password
-        for user in tcp_handler.usernames:
-            if len(user) > 0:
-                username = user
-        print('USER FOR COMMENT: ' + str(username))
-        # store
-        id = db.get_comment_id()
-        entry = {'_id': id, 'messageType': 'chatMessage',
-                 'username': username, 'comment': comment}
-        db.insert_comment(entry)
-        send_201(tcp_handler)
-    else:
-        print('404 in chat')
-        send_404(tcp_handler)
+#     if is_token_valid:
+#         # check database for username and password
+#         for user in tcp_handler.usernames:
+#             if len(user) > 0:
+#                 username = user
+#         print('USER FOR COMMENT: ' + str(username))
+#         # store
+#         id = db.get_comment_id()
+#         entry = {'_id': id, 'messageType': 'chatMessage',
+#                  'username': username, 'comment': comment}
+#         db.insert_comment(entry)
+#         send_201(tcp_handler)
+#     else:
+#         print('404 in chat')
+#         send_404(tcp_handler)
 
 
 def login(tcp_handler, received_data: bytes):

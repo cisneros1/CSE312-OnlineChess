@@ -20,6 +20,17 @@ def send_200(self, length, mimetype, body):
     response += body #should be in bytes
     self.request.sendall(response)
     
+def send_201(self):
+    nosniff = "X-Content-Type-Options:nosniff"
+
+    response = b'HTTP/1.1 201 Created\r\n'
+    response += b"\r\nContent-Length: 4"
+    response += b"\r\nContent-Type: text/plain\r\n"
+    response += nosniff.encode()
+    response += b"\r\n\r\n"
+    response += b"\r\nGood"
+    self.request.sendall(response)
+
 
 def send_json(self, length, mimetype, body):
     nosniff = "X-Content-Type-Options:nosniff"
