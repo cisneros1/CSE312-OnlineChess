@@ -44,6 +44,7 @@ class Piece {
             return '';
         }
         let piece = gridtoPiece(y, x, grid);    // Returns a piece if there's a piece there. Returns '' otherwise.
+        // console.log(this);
         if (color === "white") {
             if (piece) {
                 if (piece.color === "black" && grid[y][x].startsWith('b') && can_capture) {
@@ -80,6 +81,50 @@ class Piece {
         let pos_y = offset_y + board_y + square_size * this.grid_y;
         return [pos_y, pos_x];
     }
+
+    // This method will be overridden
+    generateMoves(grid) {
+        ;
+    }
+
+    // This method is for Queen, Rooks, and Bishops pieces.
+    // Inputs: grid is obvious. offsets = [y_offset, x_offset]
+    // TODO - Test this.
+    generateMovesMany(grid, offsets) {
+        let opposite_color = this.color === 'white' ? 'b' : 'w';
+        let cur_y = this.grid_y;
+        let cur_x = this.grid_x;
+        let offset_y = offsets[0];
+        let offset_x = offsets[1];
+
+        cur_x += offset_x;
+        cur_y += offset_y;
+        while (within_grid(cur_y, cur_x) && grid[cur_y][cur_x] === ' ') {
+            this.moves.push([cur_y, cur_x]);
+        }
+        if (within_grid(cur_y, cur_x) && grid[cur_y][cur_x].startsWith(opposite_color)) {
+            this.moves.push([cur_y, cur_x]);
+            this.attack_moves.push([cur_y, cur_x]);
+        }
+    }
+
+    // Draw the available moves
+    displayMoves(context) {
+        context.save();
+        context.globalAlpha = 0.65;
+        for (let move of this.moves) {
+            // If a move is also a capture move then make the square red.
+            let in_attack_moves = this.attack_moves.find(attack_move => move[0] === attack_move[0] && move[1] === attack_move[1]);
+            if (in_attack_moves) {
+                context.fillStyle = "#be2a2a";
+            } else {
+                context.fillStyle = "#4ea8ff";
+            }
+            let offset_x = -1;
+            context.fillRect(top_left_coord[1] + move[1] * square_size + offset_x, top_left_coord[0] + move[0] * square_size, square_size, square_size);
+        }
+        context.restore();
+    }
 }
 
 class Pawn extends Piece {
@@ -91,19 +136,31 @@ class Pawn extends Piece {
     generateMoves(grid) {
         // Offset values. y, x, can_capture
         let flip_y = this.color === 'white' ? 1 : -1;
-        let moves = [[-1 * flip_y, 0, false], [-2, 0, false], [-1 * flip_y, -1, true], [-1 * flip_y, 1, true]]   // An offset from the current position. For black side multiply y by -1.
+        let moves = [[-1 * flip_y, 0, false]];   // An offset from the current position. For black side multiply y by -1.
+        let opposite_color = this.color === 'white' ? 'black' : 'white';
+        // Cover capture moves
         if (!this.has_moved) {
             moves.push([-2 * flip_y, 0, false]);
+        }
+        // Check if this pawn can capture another piece on it's left and right
+        let check_left = gridtoPiece(-1 * flip_y + this.grid_y, -1 + this.grid_x, grid);
+        let check_right = gridtoPiece(-1 * flip_y + this.grid_y, 1 + this.grid_x, grid);
+
+        if (check_left && check_left.color === opposite_color) {
+            moves.push([-1 * flip_y, -1, true]);
+        }
+        if (check_right && check_right.color === opposite_color) {
+            moves.push([-1 * flip_y, 1, true]);
         }
         for (let move of moves) {
             let offset_y = move[0] + this.grid_y;
             let offset_x = move[1] + this.grid_x;
             let is_valid = this.validate_move(this.color, offset_y, offset_x, grid, move[2]);
             if (is_valid === "capture_move") {
-                this.moves.push([move[0], move[1]]);
-                this.attack_moves.push([move[0], move[1]]);
+                this.moves.push([offset_y, offset_x]);
+                this.attack_moves.push([offset_y, offset_x]);
             } else if (is_valid === "valid_move") {
-                this.moves.push([move[0], move[1]]);
+                this.moves.push([offset_y, offset_x]);
             }
         }
     }
@@ -115,7 +172,14 @@ class Bishop extends Piece {
     }
 
     generateMoves(grid) {
-        ;
+        // Check upper-left
+        this.generateMovesMany(grid, [-1, -1]);
+        // Check upper-right
+        this.generateMovesMany(grid, [-1, 1]);
+        // Check lower-left
+        this.generateMovesMany(grid, [1, -1]);
+        // Check lower-right
+        this.generateMovesMany(grid, [1, 1]);
     }
 }
 
@@ -123,11 +187,46 @@ class Knight extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
     }
+
+    // TODO - Untested.
+    generateMoves(grid) {
+        let moves = [[-1, 2], [-2, -1], [-2, 1], [-1, 2], [1, -2], [2, -1], [2, 1], [1, 2]] // List of offset from the current grid position.
+        for (let move of moves) {
+            let offset_y = this.grid_y + move[0];
+            let offset_x = this.grid_x + move[1];
+            let is_valid = this.validate_move(this.color, offset_y, offset_x, grid);
+            if (is_valid === "capture_move") {
+                this.moves.push([offset_y, offset_x]);
+                this.attack_moves.push([offset_y, offset_x]);
+            } else if (is_valid === "valid_move") {
+                this.moves.push([offset_y, offset_x]);
+            }
+        }
+    }
 }
 
 class Queen extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
+    }
+
+    generateMoves(grid) {
+        // Check upper-left
+        this.generateMovesMany(grid, [-1, -1]);
+        // Check upper-right
+        this.generateMovesMany(grid, [-1, 1]);
+        // Check lower-left
+        this.generateMovesMany(grid, [1, -1]);
+        // Check lower-right
+        this.generateMovesMany(grid, [1, 1]);
+        // Check left
+        this.generateMovesMany(grid, [0, -1]);
+        // Check up
+        this.generateMovesMany(grid, [-1, 0]);
+        // Check right
+        this.generateMovesMany(grid, [0, 1]);
+        // Check down
+        this.generateMovesMany(grid, [1, 0]);
     }
 }
 
@@ -135,20 +234,48 @@ class Rook extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
     }
+
+    generateMoves(grid) {
+        // Check left
+        this.generateMovesMany(grid, [0, -1]);
+        // Check up
+        this.generateMovesMany(grid, [-1, 0]);
+        // Check right
+        this.generateMovesMany(grid, [0, 1]);
+        // Check down
+        this.generateMovesMany(grid, [1, 0]);
+    }
 }
 
+// TODO - Add castling.
 class King extends Piece {
     constructor(piece_name, grid_coord) {
         super(piece_name, grid_coord);
+    }
+
+    generateMoves(grid) {
+        let moves = [[-1, -1], [-1, 1], [1, -1], [1, 1], [0, -1], [-1, 0], [0, 1], [1, 0]];
+        for (let move of moves) {
+            let offset_y = this.grid_y + move[0];
+            let offset_x = this.grid_x + move[1];
+            let is_valid = this.validate_move(this.color, offset_y, offset_x, grid);
+            if (is_valid === "capture_move") {
+                this.moves.push([offset_y, offset_x]);
+                this.attack_moves.push([offset_y, offset_x]);
+            } else if (is_valid === "valid_move") {
+                this.moves.push([offset_y, offset_x]);
+            }
+        }
     }
 }
 
 // Saves the state of the board
 // Will be used to check for checks, check mates, and rolling back turns
 class GameState {
-    constructor(grid, pieces) {
+    constructor(grid, pieces, your_turn) {
         this.grid = grid;
-        console.log(this.grid);
+        console.log(copy2d(this.grid));
+
         this.pieces = pieces;
         this.cursor_x = 0;
         this.cursor_y = 0;
@@ -161,12 +288,13 @@ class GameState {
             instance.cursor_x = e.offsetX;
             instance.cursor_y = e.offsetY;
         });
+        // TODO - This will need to be changed at some point. Websocket stuff
+        this.generateAllMoves();
+        this.game_started = true;
+        this.your_turn = your_turn;
+        this.in_check = false;
+        this.player_color = ''; // Will be set to 'white' or 'black'
         this.board_state_stack = [];    // To roll back turns. To check for checks, stalemates and checkmates.
-        this.board_state = {
-            turn: "white",
-            total_turns: 0,
-
-        }
 
         // TODO - The event handlers below are unfinished.
         // Listen for mouse clicks
@@ -183,8 +311,13 @@ class GameState {
         });
         // Listen for mouse release. This is where we make a chess move
         window.addEventListener('mouseup', function (e) {
-            // Set all pieces to the unclicked state.
+            // Set all pieces to the un-clicked state.
             instance.last_clicked = [0, 0];
+            // TODO - This line is causing issues :(
+            // let piece_clicked = this.all_pieces.find(piece => piece.clicked === true);
+            // if (instance.your_turn && piece_clicked) {
+            //     ;
+            // }
             for (let piece of instance.pieces) {
                 piece.clicked = false;
             }
@@ -192,6 +325,97 @@ class GameState {
         console.log("Created Game State");
         // Begin main loop
         this.updateGame();
+    }
+
+    // Returns true if your king is in check
+    inCheck() {
+        let opposite_color = this.player_color === 'white' ? 'black' : 'white';
+        let king = this.pieces.find(piece => piece instanceof King && piece.color === this.player_color);
+        for (let piece of this.pieces) {
+            if (piece.color === opposite_color) {
+                let in_check = piece.attack_moves.find(move => move[0] === king.grid_y && move[1] === king.grid_x);
+                if (in_check) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // This will remove moves that put the player in check
+    filterMoves() {
+        let saved_board = this.saveBoardState();
+        let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
+        for (let piece of player_pieces){
+            for (const move of piece.moves){
+                this.MakeMove(piece, move);
+                let in_check = this.in_check();
+                if (in_check){
+                    ;
+                }
+                this.loadBoardState(saved_board);
+            }
+        }
+    }
+
+    // This method will make a move.
+    MakeMove(piece, move) {
+        let move_y = move[0];
+        let move_x = move[1];
+        this.grid[piece.grid_y][piece.grid_x] = ' ';
+        piece.grid_y = move_y;
+        piece.grid_x = move_x;
+
+        let capture_move = piece.attack_moves.find(attack_move => move[0] === attack_move[0] && move[1] === attack_move[1]);
+        let captured_piece = gridtoPiece(move_y, move_x, this.grid);
+        if (capture_move) {
+            captured_piece.captured = true;
+            this.grid[captured_piece.grid_y][captured_piece.grid_x] = piece.piece_name;
+            captured_piece.grid_y = -1;
+            captured_piece.grid_x = -1;
+
+        } else {
+            this.grid[move_y][move_x] = piece.piece_name;
+        }
+    }
+
+    // TODO - untested.
+    // Saves the state of the entire board.
+    saveBoardState() {
+        let board_state = {
+            grid: copy2d(this.grid),
+            in_check: this.in_check,
+            your_turn: this.your_turn,
+            piece_states: new Map()
+        }
+        for (let piece of this.pieces) {
+            let piece_state = {
+                grid_y: piece.grid_y,
+                grid_x: piece.grid_x,
+                captured: piece.captured,
+                has_moved: piece.has_moved,
+                moves: copy2d(piece.moves),
+                attack_moves: copy2d(piece.attack_moves)
+            }
+            board_state.piece_states.set(piece, piece_state);   // Set a Mapping of (piece => piece_state)
+        }
+        return board_state;
+    }
+
+    // Changes the state of the game
+    loadBoardState(board_state) {
+        this.grid = board_state.grid;
+        this.in_check = board_state.in_check;
+        this.your_turn = board_state.your_turn;
+        for (let piece of this.pieces) {
+            let piece_state = board_state.piece_states.get(piece);
+            piece.grid_y = piece_state.grid_y;
+            piece.grid_x = piece_state.grid_x;
+            piece.captured = piece_state.captured;
+            piece.has_moved = piece_state.has_moved;
+            piece.moves = piece_state.moves;
+            piece.attack_moves = piece_state.attack_moves;
+        }
     }
 
     // Display all of the chess pieces
@@ -206,10 +430,30 @@ class GameState {
         }
     }
 
+    // Debug method - Generate all moves
+    generateAllMoves() {
+        for (let piece of this.pieces) {
+            if (!piece.captured) {
+                piece.generateMoves(this.grid);
+            }
+        }
+    }
+
+    // TODO - Update this to not include piece that have been captured and only display if the game has started and it's the player turn
+    displayAllMoves() {
+        for (let piece of this.pieces) {
+            if (piece.clicked && !piece.captured) {
+                piece.displayMoves(this.context);
+            }
+            // piece.displayMoves(this.context);
+        }
+    }
+
     // The main loop.
     updateGame() {
         clearAll(this.context);
         clearBoard();
+        this.displayAllMoves();
         this.displayAllPieces();
         let offset = square_size / 2;
         // this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
@@ -231,7 +475,7 @@ const chess_grid = [[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']];
 const board_coord = [100, 100];   // y, x
-const board_size = document.getElementById('chess_image').width;            // This should be 800. Board is an 800*800 canvas
+const board_size = document.getElementById('chess_image').width;    // This should be 800. Board is an 800*800 canvas
 const piece_dim = [65, 65];     // width and height of each piece
 const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
@@ -252,9 +496,24 @@ function displayImage(piece_name, x, y, height, width) {
     return image;
 }
 
+// Make a copy of a 2d array.
+function copy2d(array_2d) {
+    if (array_2d.length === 0) {
+        return [];
+    }
+    let array_copy = [];
+    for (let row of array_2d) {
+        array_copy.push([...row]);
+    }
+    return array_copy;
+}
+
 // Given an x and y grid index return the corresponding chess on that square. Returns '' if no piece was clicked.
 function gridtoPiece(y, x, grid) {
     let piece = '';
+    if (!within_grid(y, x)) {
+        return piece;
+    }
     for (let piece of all_pieces) {
         if (piece.grid_y === y && piece.grid_x === x && grid[y][x] === piece.piece_name) {
             return piece;
@@ -327,8 +586,8 @@ function setup() {
             all_pieces = all_pieces.concat([white_rook, black_rook, white_knight, black_knight, white_bishop, black_bishop, white_king, black_king, white_queen, black_queen]);
         }
         if (i === 1) {
-            let white_bishop = new Knight('w_bishop', [7, 5]);
-            let black_bishop = new Knight('b_bishop', [0, 5]);
+            let white_bishop = new Bishop('w_bishop', [7, 5]);
+            let black_bishop = new Bishop('b_bishop', [0, 5]);
 
             let white_knight = new Knight('w_knight', [7, 6]);
             let black_knight = new Knight('b_knight', [0, 6]);
