@@ -143,7 +143,7 @@ def websocket(self, received_data):
                 authenticated = is_authenticated(self.db, self.cursor, user_token)  # Check query token with hash
     # authenticated is the username
     if authenticated:
-            MyTCPHandler.registered_users[authenticated] = self
+        MyTCPHandler.registered_users[authenticated] = self
         username = "User" + str(random.randint(0, 1000))
         print('User: ' + username + ' has opened a websocket connection')
         key = received_data.split(b'Sec-WebSocket-Key: ')[1]
