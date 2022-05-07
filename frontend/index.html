@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body onload="setup(); welcome();">
+<body onload="setup();">
     <div class="sidebar open">
         <div class="logo-details">
             <i class='bx bxl-c-plus-plus icon'></i>
@@ -51,6 +51,10 @@
     </div>
     <section class="home-section">
 
+        <div id="login_button">
+            <a href="signin">Login</a>
+        </div>
+
         <h1 style="text-align: center">Online Chess</h1>
         <img id="chess_image" src="image/chessboard.jpg" class="img-rounded" alt="Chess Board" width="800" height="800" hidden>
         
@@ -70,7 +74,7 @@
         <script src="functions.js"></script>
         
         
-        <label for="chat-comment">Chat: </label>
+        <!-- <label for="chat-comment">Chat: </label>
         <input id="chat-comment" type="text" name="comment">
         
         <button onclick="sendMessage()">Send</button>
@@ -88,7 +92,7 @@
 
         <video id="myVideo" autoplay muted></video>
         <br />
-        <video id="otherVideo" autoplay></video>
+        <video id="otherVideo" autoplay></video> -->
 
 
     </section>

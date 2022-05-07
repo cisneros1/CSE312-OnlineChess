@@ -1,7 +1,13 @@
 // Establish a WebSocket connection with the server
 const socket = new WebSocket('ws://' + window.location.host + '/websocket');
 let webRTCConnection;
+let token = "";
 
+if ((window.location.href).includes('signup_log')) {
+    window.location.replace('https://localhost/signin')
+} else {
+    console.log('Good page')
+}
 
 
 // Allow users to send messages by pressing enter instead of clicking the Send button
@@ -125,13 +131,17 @@ function connectWebRTC() {
 
 function welcome() {
     document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
-    console.log('Welcome Ajax called')
     get_chat_history()
-    // use this line to start your video without having to click a button. Helpful for debugging
-    // startVideo();
+    const tokenLoad = document.getElementById("xsrf_token");
+    token = tokenLoad.value;
+    console.log(token);
 }
 
-function exit() {
-    console.log('Killed')
-    // sends close frame
+
+function redirect() {
+    let xmlHttpReq = new XMLHttpRequest();
+    xmlHttpReq.open("GET", '/login', false);
+    xmlHttpReq.send(null);
+    return xmlHttpReq.responseText;
 }
+console.log(httpGet('https://jsonplaceholder.typicode.com/posts'));

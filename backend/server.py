@@ -69,6 +69,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     web_sockets = []
     if os.path.isdir('/root'):
         inDocker = True
+        
+    usernames = []
+    valid_tokens = [] # The same for each user
 
     full_bytes_sent = b''
 

@@ -6,10 +6,12 @@ import json
 import hashlib
 import base64
 import secrets
+import bcrypt
 
-from generate_response import send_200, send_101, send_301
+from generate_response import *
 from filepaths import file_paths
 from websocket import websocket_server
+from template_engine import *
 
 
 # DEAL WITH ONLY GET REQUESTS
@@ -17,29 +19,26 @@ from websocket import websocket_server
 
 def handle_get(self, received_data):
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
+    print("path is: " + str(path))
 
     if path == '/':
         index(self, received_data)
         
     elif path == '/login' or path == '/logged_in':
-        send_404()
+        (self, received_data)
         
     elif path == '/signin':
-        signin(self, received_data)
+        signin(self)
         
     elif path == '/signup':
-        signup(self, received_data)
+        signup(self)
         
-        
-
     elif path == '/websocket':
         websocket(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
         
-        
-
     elif path == '/functions.js':
         javascript(self)
 
@@ -47,13 +46,8 @@ def handle_get(self, received_data):
         chess_engine(self)
         
         
-
     elif '.css' in path:
         style(self, received_data)
-
-
-
-
 
 
     elif '/image/' in path:
@@ -65,18 +59,33 @@ def handle_get(self, received_data):
         print('Unrecognized Request, sending 404')
 
 
-def index(self, received_data):
+def index(self, received_data: bytes):
     file_path = file_paths(self)
-
     with open(file_path['index.html'], 'rb') as content:
         body = content.read()
     mimetype = 'text/html; charset=utf-8'
     length = os.path.getsize(file_path['index.html'])
 
-    send_200(self, length, mimetype, body)
-    
+    if 'Cookie' in str(received_data):
+        print(str(received_data))
+        cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0]
+        cookie = cookie.decode()
+        print('Recieved Cookie: ' + str(cookie))
+        new_cookie = int(cookie)
+        new_cookie += 1
+        decoded = body.decode()
+        decoded = decoded.replace('{{cookie}}', str(new_cookie))
+        body = decoded.encode()
+        send_200_with_cookie(self, length, mimetype, body, new_cookie)
+    else:
+        cookie = 1
+        decoded = body.decode()
+        decoded = decoded.replace('{{cookie}}', str(cookie))
+        body = decoded.encode()
+        send_200_with_cookie(self, length, mimetype, body, cookie)
     
 
+# Displayes singin from with generated token
 def signin(tcp_handler):
     # generate token
     token = secrets.token_urlsafe(32)
@@ -110,8 +119,7 @@ def signup(tcp_handler):
 
     send_200(tcp_handler, length, mimetype, body)
 
-    
-    
+
 
 def websocket(self, received_data):
     username = "User" + str(random.randint(0, 1000))

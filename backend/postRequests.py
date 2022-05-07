@@ -20,10 +20,10 @@ def handle_post(tcp_handler, received_data):
     else:
         print('Unrecognized Post Request, sending 404')
         send_404(tcp_handler)
+        
+        
 
 # This function is not called
-
-
 def chat(tcp_handler, received_data: bytes):
     # At this point user has been checked
     print('chat')

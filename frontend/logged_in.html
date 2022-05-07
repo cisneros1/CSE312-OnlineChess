@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body onload="setup();">
+<body onload="setup(); welcome();">
     <div class="sidebar open">
         <div class="logo-details">
             <i class='bx bxl-c-plus-plus icon'></i>
@@ -51,15 +51,15 @@
     </div>
     <section class="home-section">
 
-        <div id="login_button">
-            <a href="signin">Login</a>
+        <div style="text-align:right; padding-right: 10px; color: white; display: inline-block">
+            <a href="index" class="">Logout</a>
         </div>
 
         <h1 style="text-align: center">Online Chess</h1>
         <img id="chess_image" src="image/chessboard.jpg" class="img-rounded" alt="Chess Board" width="800" height="800"
             hidden>
 
-        <h5>Please login to play online against friends</h5>
+        <h1>CSE312 Sample Page</h1>
 
         <script src="../Chess/ChessEngine.js"></script>
 
@@ -68,14 +68,20 @@
             Canvas here.
         </canvas>
 
+        <p id="paragraph">
+            This text is from the HTML file 🙂
+        </p>
 
         <script src="functions.js"></script>
 
-<!-- 
-        <label for="chat-comment" hidden>Chat: </label>
+
+        <label for="chat-comment">Chat: </label>
         <input id="chat-comment" type="text" name="comment">
 
         <button onclick="sendMessage()">Send</button>
+
+
+
 
         <div id="chat"></div>
 
@@ -87,7 +93,7 @@
 
         <video id="myVideo" autoplay muted></video>
         <br />
-        <video id="otherVideo" autoplay></video> -->
+        <video id="otherVideo" autoplay></video>
 
 
     </section>

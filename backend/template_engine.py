@@ -41,3 +41,10 @@ def render_loop(template, data):
             loop_content + template[end_index+len(loop_end_tag):]
 
         return final_content
+
+
+def escape_html(message: str):
+    escaped = message.replace("&", "&amp;")
+    escaped = escaped.replace("<", "&lt;")
+    escaped = escaped.replace(">", "&gt;")
+    return escaped
