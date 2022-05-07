@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body>
+<body onload="setup(); welcome();">
     <div class="sidebar open">
         <div class="logo-details">
             <i class='bx bxl-c-plus-plus icon'></i>
@@ -51,53 +51,40 @@
     </div>
     <section class="home-section">
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="background-color: brown">
-            <a class="navbar-brand" href="#">Navbar</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <h1 style="text-align: center">Online Chess</h1>
+        <img id="chess_image" src="image/chessboard.jpg" class="img-rounded" alt="Chess Board" width="800" height="800" hidden>
+        
+        <h1>CSE312 Sample Page</h1>
+        
+        <p id="paragraph">
+            This text is from the HTML file 🙂
+        </p>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="#">Online Chess <span class="sr-only">(current)</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Sign in</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">Disabled</a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+        <script src="functions.js"></script>
+        <script src="../Chess/ChessEngine.js"></script>
 
-        <div class="main">
-            <h1 style="text-align: center">Online Chess</h1>
+        <label for="chat-comment">Chat: </label>
+        <input id="chat-comment" type="text" name="comment">
 
-            <div class="chessboard">
-                <img src="image/chessboard.jpg" class="img-rounded" alt="Chess Board">
-            </div>
+        <button onclick="sendMessage()">Send</button>
 
-            <div class="chatbox" id="chat">
-            <script src="functions.js"></script>
-            <label for="chat-comment">Chat: </label>
-            <input id="chat-comment" type="text" name="comment">
-            <button onclick="sendMessage()">Send</button>
-            <br />
-            <div class="websocket">
-            <button onclick="startVideo()">Start My Video</button>
-            <br />
-            <button onclick="connectWebRTC()">Start Video Chat</button>
-            <br />
-            <video id="myVideo" autoplay muted></video>
-            <br />
-            <video id="otherVideo" autoplay></video>
-            </div>
+        <canvas id="chess_canvas" width="1000" height="1000" style="border:1px solid #d3d3d3;">
+            Canvas here.
+        </canvas>
 
-            <div></div>
-        </div>
+        <div id="chat"></div>
+
+        <br />
+        <button onclick="startVideo()">Start My Video</button>
+        <br />
+        <button onclick="connectWebRTC()">Start Video Chat</button>
+        <br />
+
+        <video id="myVideo" autoplay muted></video>
+        <br />
+        <video id="otherVideo" autoplay></video>
+
+
     </section>
     <script>
         let sidebar = document.querySelector(".sidebar");
