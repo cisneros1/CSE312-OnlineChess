@@ -11,7 +11,7 @@ def handle_post(tcp_handler, received_data):
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
     print('POST Request for: ' + str(path))
 
-    if 'logi' in str(path):
+    if 'login' in str(path):
         login(tcp_handler, received_data)
     elif 'signup_log' in str(path):
         signup(tcp_handler, received_data)
@@ -58,14 +58,10 @@ def chat(tcp_handler, received_data: bytes):
 
 def login(tcp_handler, received_data: bytes):
     print('-------------------------')
-    token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
-                        1].split(b'\r\n')[0].decode())
-    username = escape_html(received_data.split(b'name="username"\r\n\r\n')[
-                           1].split(b'\r\n')[0].decode())
-    password = escape_html(received_data.split(b'name="password"\r\n\r\n')[
-                           1].split(b'\r\n')[0].decode())
-    cookie = escape_html(received_data.split(b'Cookie: ')
-                         [1].split(b'\r\n')[0].decode())
+    token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)

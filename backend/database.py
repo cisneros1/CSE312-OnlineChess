@@ -13,7 +13,8 @@ db = mysql.connect(
 )
 cursor = db.cursor(prepared=True)
 # This create the table with an auto incremented id
-# We can use the 'TEXT' type for string and 'BLOB' to store bytes (for images)
+# We can use the 'TEXT' type for string and 'BLOB' to store bytes
+# This table is for chat history
 cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                     username TEXT,
                     json_message TEXT,
