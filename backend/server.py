@@ -245,7 +245,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         while True:
             self.data = self.request.recv(1024)
             string_data: str = self.data.decode()
-            path, headers, content = parse_request(self.data)
             # # Data buffering
             # data = self.data
             # boundary = None  # This is used when form data is sent
@@ -276,17 +275,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
             if len(self.data) < 1023:
                 break
-
-        print(str(self.full_bytes_sent))
+            
         if 'GET' in str(self.full_bytes_sent):
             handle_get(self, self.full_bytes_sent)
 
         elif 'POST' in str(self.full_bytes_sent):
             handle_post(self, self.full_bytes_sent)
-
-        if path.lower() == '/websocket':
-            MyTCPHandler.web_sockets.append(self)
-            self.handle_websocket()
+        else:
+            print('ERROR OCURRED IN SERVER.PY')
 
 
 if __name__ == "__main__":

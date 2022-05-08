@@ -17,7 +17,7 @@ def handle_post(tcp_handler, received_data):
 
     if 'login' in str(path):
         login(tcp_handler, received_data)
-    elif 'signup_log' in str(path):
+    elif path == '/signup_log':
         print('ENTERING REDIRECT .......')
         print(str(received_data))
         signup(tcp_handler, received_data)
@@ -86,7 +86,7 @@ def login(tcp_handler, received_data: bytes):
         # print('List is: ' + str(json_users))
 
         auth_token: str = secrets.token_hex(nbytes=80)
-        auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), bcrypt.gensalt())
+        auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
         userfound = authenticate_login(db, cursor, username, password, auth_token_hashed)
         # for json_dict in json_users:
         #     if username == json_dict['username']:
@@ -148,7 +148,7 @@ def signup(tcp_handler, received_data):
     if is_token_valid:
         # check password requirements
         if username and password:
-            hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+            hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
             register_user(db, cursor, username, hashed_password)
         # print('Hasing and Storing password...')
         # encoded_pwd = password.encode()
@@ -166,7 +166,7 @@ def signup(tcp_handler, received_data):
         # new_token = secrets.token_urlsafe(32)
         # tcp_handler.valid_tokens.append(new_token)
         
-        send_301(tcp_handler, '/signin')
+        send_301(tcp_handler, 'http://localhost:8080/signin')
         print('REDIRECT WAS SENT')
         
 

@@ -60,7 +60,7 @@ def send_json(self, length, mimetype, body):
     
 
 def send_301(self, new_location):
-    response = b"HTTP/1.1 303 Moved Permanently"
+    response = b"HTTP/1.1 301 Moved Permanently"
     response += b"\r\nContent-Length: 0"
     response += b"\r\nLocation: " + new_location.encode()
     self.request.sendall(response)

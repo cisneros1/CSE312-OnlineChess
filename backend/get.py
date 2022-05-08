@@ -29,6 +29,9 @@ def handle_get(self, received_data):
     elif path == '/login' or path == '/logged_in':
         # (self, received_data)
         send_404(self)
+        
+    elif path == '/signup_log':
+        send_301(self, 'http://localhost:8080/signin')
 
 
     elif path == '/signin':
