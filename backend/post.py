@@ -111,15 +111,13 @@ def login(tcp_handler, received_data: bytes):
             with open(file_path['logged_in.html'], 'rb') as content:
                 body = content.read()
             decoded = body.decode()
-            decoded = decoded.replace('{{token}}', new_token)
-            # decoded = decoded.replace('{{username}}', username)
-            # response = b"HTTP/1.1 301 Moved Permanently\r\n"
-            cookie = f"Set-Cookie: user={auth_token}; HttpOnly; Max-Age=3600\r\n"
             mimetype = 'text/html; charset=utf-8'
             length = len(body)
 
-            send_200_with_cookie(tcp_handler, length,
-                                 mimetype, body, cookie)
+            send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
+
+            # send_200_with_cookie(tcp_handler, length,
+            #                      mimetype, body, cookie)
 
     else:
         send_404(tcp_handler)
