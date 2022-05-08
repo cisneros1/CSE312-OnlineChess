@@ -81,10 +81,10 @@ def login(tcp_handler, received_data: bytes):
 
     if is_token_valid:
         # check database for username and password
-        json_users = (db.list_all()).copy()
-        print(json_users)
+        # json_users = (db.list_all()).copy()
+        # print(json_users)
         # print('List is: ' + str(json_users))
-
+        
         auth_token: str = secrets.token_hex(nbytes=80)
         auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
         userfound = authenticate_login(db, cursor, username, password, auth_token_hashed)
@@ -96,6 +96,9 @@ def login(tcp_handler, received_data: bytes):
         #         if bcrypt.checkpw(json_dict['password'].encode(), hashed):
         #             userfound = True
         #             print('User has been found in the database')
+        
+        
+        
         if not userfound:
             print('That user does not exist')
             send_404(tcp_handler)
