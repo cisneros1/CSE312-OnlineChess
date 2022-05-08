@@ -87,7 +87,7 @@ def login(tcp_handler, received_data: bytes):
         
         auth_token: str = secrets.token_hex(nbytes=80)
         auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
-        userfound = authenticate_login(db, cursor, username, password, auth_token_hashed)
+        userfound : bool= authenticate_login(db, cursor, username, password, auth_token_hashed)
         # for json_dict in json_users:
         #     if username == json_dict['username']:
         #         encoded_pwd = password.encode()

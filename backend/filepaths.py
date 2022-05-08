@@ -18,6 +18,7 @@ def file_paths(self):
             "index.html": '/root/frontend/index.html',
             "signin.html": '/root/frontend/signin.html',
             "signup.html": '/root/frontend/signup.html',
+            "logged_in.html": '/root/frontend/logged_in.html',
             
             "style.css": '/root/frontend/style.css',
             "signin.css": '/root/frontend/signin.css',

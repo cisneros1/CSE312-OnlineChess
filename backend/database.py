@@ -67,7 +67,7 @@ def authenticate_login(db, cursor, username, password, token):
         row = cursor.fetchone()
         if row:
             stored_password = row[0]
-            if bcrypt.checkpw(password, stored_password):
+            if bcrypt.checkpw((password.encode()), (stored_password.encode())):
                 post_token(db, cursor, username, token)
                 return True
             else:

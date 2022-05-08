@@ -70,7 +70,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     if os.path.isdir('/root'):
         inDocker = True
 
-    # usernames = []
+    usernames = []
     xsrf_token = {}
     valid_tokens = []  # The same for each user
 
