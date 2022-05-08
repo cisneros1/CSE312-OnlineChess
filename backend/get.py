@@ -116,7 +116,7 @@ def signin(tcp_handler):
     send_200(tcp_handler, length, mimetype, body)
 
 
-# Displayes signup from with generated token
+# Displays signup from with generated token
 def signup(tcp_handler):
     # generate token
     token = secrets.token_urlsafe(32)

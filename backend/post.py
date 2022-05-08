@@ -84,10 +84,10 @@ def login(tcp_handler, received_data: bytes):
         # json_users = (db.list_all()).copy()
         # print(json_users)
         # print('List is: ' + str(json_users))
-        
+
         auth_token: str = secrets.token_hex(nbytes=80)
         auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
-        userfound : bool= authenticate_login(db, cursor, username, password, auth_token_hashed)
+        userfound: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
         # for json_dict in json_users:
         #     if username == json_dict['username']:
         #         encoded_pwd = password.encode()
@@ -96,9 +96,7 @@ def login(tcp_handler, received_data: bytes):
         #         if bcrypt.checkpw(json_dict['password'].encode(), hashed):
         #             userfound = True
         #             print('User has been found in the database')
-        
-        
-        
+
         if not userfound:
             print('That user does not exist')
             send_404(tcp_handler)
@@ -168,10 +166,10 @@ def signup(tcp_handler, received_data):
         # MyTCPHandler.registered_users[username] = tcp_handler   # Associate a
         # new_token = secrets.token_urlsafe(32)
         # tcp_handler.valid_tokens.append(new_token)
-        
+
         send_301(tcp_handler, 'http://localhost:8080/signin')
         print('REDIRECT WAS SENT')
-        
+
 
     else:
         send_404(tcp_handler)
