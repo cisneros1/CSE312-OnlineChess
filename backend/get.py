@@ -143,6 +143,8 @@ def websocket(self, received_data):
     if set_cookies:
         header_content_list = set_cookies[0][1].split(b';')
         for directive in header_content_list:
+            if b'=' not in directive:
+                continue
             directive_name, directive_content = directive.split(b'=')
             directive_name = directive_name.strip()
             if directive_name == b'homepage_cookie':
