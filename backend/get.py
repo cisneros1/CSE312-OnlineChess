@@ -73,23 +73,7 @@ def index(self, received_data: bytes):
     mimetype = 'text/html; charset=utf-8'
     length = os.path.getsize(file_path['index.html'])
 
-    if 'Cookie' in str(received_data):
-        print(str(received_data))
-        cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0]
-        cookie = cookie.decode()
-        print('Recieved Cookie: ' + str(cookie))
-        new_cookie = int(cookie)
-        new_cookie += 1
-        decoded = body.decode()
-        decoded = decoded.replace('{{cookie}}', str(new_cookie))
-        body = decoded.encode()
-        send_200_with_cookie(self, length, mimetype, body, new_cookie)
-    else:
-        cookie = 1
-        decoded = body.decode()
-        decoded = decoded.replace('{{cookie}}', str(cookie))
-        body = decoded.encode()
-        send_200_with_cookie(self, length, mimetype, body, cookie)
+    send_200(self, length, mimetype, body)
 
 
 # Displayes singin from with generated token
