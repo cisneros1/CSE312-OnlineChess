@@ -100,7 +100,7 @@ def login(tcp_handler, received_data: bytes):
         else:
             # if user found
 
-            tcp_handler.usernames.append(username)
+            MyTCPHandler.usernames.append(username)
             new_token = secrets.token_urlsafe(32)
             tcp_handler.valid_tokens.append(new_token)
 

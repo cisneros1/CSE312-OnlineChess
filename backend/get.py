@@ -10,10 +10,10 @@ import bcrypt
 
 from generate_response import *
 from filepaths import file_paths
-from websocket import websocket_server
 from backend.template_engine import *
-from backend.server import MyTCPHandler
 from backend.parsers import parse_request
+
+ws_users = {}
 
 # DEAL WITH ONLY GET REQUESTS
 
@@ -94,11 +94,11 @@ def signin(tcp_handler):
     tcp_handler.valid_tokens.append(token)
     # store token and replace in html
     file_path = file_paths(tcp_handler)
-    # with open(file_path['signin.html'], 'rb') as content:
-    #     body = content.read()
+    with open(file_path['signin.html'], 'rb') as content:
+        body = content.read()
 
-    template_data = {'token', token}
-    body = render_template(file_path, template_data)
+    # template_data = {'token', token}
+    # body = render_template(file_path['signin.html'], template_data)
     decoded = body.decode()
     decoded = decoded.replace('{{token}}', token)
     # decoded = decoded.replace('{{auth_token}}', auth_token)
@@ -143,7 +143,7 @@ def websocket(self, received_data):
                 authenticated = is_authenticated(self.db, self.cursor, user_token)  # Check query token with hash
     # authenticated is the username
     if authenticated:
-        MyTCPHandler.registered_users[authenticated] = self
+        ws_users[authenticated] = self
         username = "User" + str(random.randint(0, 1000))
         print('User: ' + username + ' has opened a websocket connection')
         key = received_data.split(b'Sec-WebSocket-Key: ')[1]
