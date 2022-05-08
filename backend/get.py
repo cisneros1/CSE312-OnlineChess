@@ -80,13 +80,13 @@ def index(self, received_data: bytes):
         decoded = body.decode()
         decoded = decoded.replace('{{cookie}}', str(new_cookie))
         body = decoded.encode()
-        send_200_with_cookie(self, length, mimetype, body, new_cookie)
+        send_200_with_cookie(self, length, mimetype, body, str(new_cookie))
     else:
         cookie = 1
         decoded = body.decode()
         decoded = decoded.replace('{{cookie}}', str(cookie))
         body = decoded.encode()
-        send_200_with_cookie(self, length, mimetype, body, cookie)
+        send_200_with_cookie(self, length, mimetype, body, str(cookie))
 
 
 # Displayes singin from with generated token
@@ -135,11 +135,14 @@ def signup(tcp_handler):
 def websocket(self, received_data):
     path, headers, content = parse_request(received_data)
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))
-    
+    print(f'set_cookies = {set_cookies}')
     authenticated = ''
     if set_cookies:
         header_content_list = set_cookies[0][1].split(b';')
         for directive in header_content_list:
+            # print(f'directive = {directive}')
+            if b'=' not in directive:
+                continue
             directive_name, directive_content = directive.split(b'=')
             directive_name = directive_name.strip()
             if directive_name == b'homepage_cookie':

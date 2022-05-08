@@ -73,6 +73,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     # usernames = []
     xsrf_token = {}
     valid_tokens = []  # The same for each user
+    web_sockets = []
 
     full_bytes_sent = b''
 
@@ -245,34 +246,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         while True:
             self.data = self.request.recv(1024)
             string_data: str = self.data.decode()
-            path, headers, content = parse_request(self.data)
-            # # Data buffering
-            # data = self.data
-            # boundary = None  # This is used when form data is sent
-            # buffered = False
-            # content_read = bytes_read(self.data)  # Content read in the first packet
-            # content_length = get_content_length(self.data)  # The value of the content length header
-
-            # if len(self.data) <= 0:
-            #     return
-
-            # # Buffering loop
-            # while content_read < content_length:
-            #     buffer_data = self.request.recv(1024)
-            #     content_read += len(buffer_data)
-            #     buffered = True
-            #     data += buffer_data  # Append the buffered bytes
-
-            # # Parsing the buffered data
-            # if buffered:
-            #     boundary = get_boundary(headers)
-            #     content = parse_content(data, boundary)
-            # request_type = find_request_type(string_data)   # is either 'get', 'post', 'delete' etc
-
-            sys.stdout.flush()
-            sys.stderr.flush()
 
             self.full_bytes_sent += self.data
+
+            path = ''
+            try:
+                path, headers, content = parse_request(self.data)
+            except Exception as e:
+                print(f"Got error {e} with data = {self.data}")
 
             if len(self.data) < 1023:
                 break

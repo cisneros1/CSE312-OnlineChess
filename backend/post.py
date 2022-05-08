@@ -1,4 +1,6 @@
 # import backend.database as db
+import sys
+
 from backend.database import *
 import secrets
 import bcrypt
@@ -14,6 +16,9 @@ def handle_post(tcp_handler, received_data):
     print('POST DATA: ' + str(received_data))
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
     print('POST Request for: ' + str(path))
+
+    sys.stderr.flush()
+    sys.stdout.flush()
 
     if 'login' in str(path):
         login(tcp_handler, received_data)
@@ -102,7 +107,7 @@ def login(tcp_handler, received_data: bytes):
         else:
             # if user found
 
-            MyTCPHandler.usernames.append(username)
+            # MyTCPHandler.usernames.append(username)
             new_token = secrets.token_urlsafe(32)
             tcp_handler.valid_tokens.append(new_token)
 
@@ -165,10 +170,8 @@ def signup(tcp_handler, received_data):
         # MyTCPHandler.registered_users[username] = tcp_handler   # Associate a
         # new_token = secrets.token_urlsafe(32)
         # tcp_handler.valid_tokens.append(new_token)
-        
+
         send_301(tcp_handler, '/signin')
         print('REDIRECT WAS SENT')
-        
-
     else:
         send_404(tcp_handler)
