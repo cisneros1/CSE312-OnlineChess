@@ -66,10 +66,12 @@ def send_301(self, new_location):
     self.request.sendall(response)
     
 
-def send_303(self, new_location):
+def send_303(self):
     response = b"HTTP/1.1 303 See Other"
-    response += b"\r\nContent-Length: 0"
-    response += b"\r\nLocation: " + new_location.encode()
+    response += b"\r\nContent-Type: text/html"
+    response += b"\r\nContent-Length: " + \
+        str(len('/signin')).encode()
+    response += b"\r\nLocation: /signin"
     self.request.sendall(response)
     
     

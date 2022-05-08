@@ -18,6 +18,8 @@ def handle_post(tcp_handler, received_data):
     if 'login' in str(path):
         login(tcp_handler, received_data)
     elif 'signup_log' in str(path):
+        print('ENTERING REDIRECT .......')
+        print(str(received_data))
         signup(tcp_handler, received_data)
     elif 'chat' in str(path):
         chat(tcp_handler, received_data)
@@ -161,30 +163,12 @@ def signup(tcp_handler, received_data):
         # db.insert(user_dict)
         # print('The following has been assed to users: ' + str(user_dict))
         # MyTCPHandler.registered_users[username] = tcp_handler   # Associate a
-        new_token = secrets.token_urlsafe(32)
-        tcp_handler.valid_tokens.append(new_token)
-        file_path = file_paths(tcp_handler)
-
-        with open(file_path['logged_in.html'], 'rb') as content:
-            body = content.read()
-        decoded = body.decode()
-        decoded = decoded.replace('{{token}}', new_token)
-        body = decoded.encode()
-        mimetype = 'text/html; charset=utf-8'
-        length = len(body)
-
-        if 'Cookie' in str(received_data):
-            print(str(received_data))
-            cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0]
-            cookie = cookie.decode()
-            print('Recieved Cookie: ' + str(cookie))
-            new_cookie = int(cookie)
-            new_cookie += 1
-            send_200_with_cookie(tcp_handler, length,
-                                 mimetype, body, new_cookie)
-        else:
-            cookie = 1
-            send_200_with_cookie(tcp_handler, length, mimetype, body, cookie)
+        # new_token = secrets.token_urlsafe(32)
+        # tcp_handler.valid_tokens.append(new_token)
+        
+        send_301(tcp_handler, '/signin')
+        print('REDIRECT WAS SENT')
+        
 
     else:
         send_404(tcp_handler)

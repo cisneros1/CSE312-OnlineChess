@@ -6,7 +6,7 @@ import secrets
 from parsers import *
 from get import *
 from database import *
-from postRequests import *
+from post import *
 
 
 # Read n number of bytes and increment i by n

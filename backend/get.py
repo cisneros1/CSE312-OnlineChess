@@ -7,6 +7,7 @@ import hashlib
 import base64
 import secrets
 import bcrypt
+import sys
 
 from generate_response import *
 from filepaths import file_paths
@@ -28,6 +29,7 @@ def handle_get(self, received_data):
     elif path == '/login' or path == '/logged_in':
         # (self, received_data)
         send_404(self)
+
 
     elif path == '/signin':
         signin(self)
@@ -89,6 +91,9 @@ def index(self, received_data: bytes):
 
 # Displayes singin from with generated token
 def signin(tcp_handler):
+    print('SIGN IN IS BEING CALLED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    sys.stdout.flush()
+    sys.stderr.flush()
     # generate token
     token = secrets.token_urlsafe(32)
     tcp_handler.valid_tokens.append(token)
@@ -129,10 +134,11 @@ def signup(tcp_handler):
 
 def websocket(self, received_data):
     path, headers, content = parse_request(received_data)
-    set_cookies = filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers)
+    set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))
+    
     authenticated = ''
     if set_cookies:
-        header_content_list = set_cookies[1].split(b';')
+        header_content_list = set_cookies[0][1].split(b';')
         for directive in header_content_list:
             directive_name, directive_content = directive.split(b'=')
             directive_name = directive_name.strip()
