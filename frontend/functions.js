@@ -1,10 +1,9 @@
 // Establish a WebSocket connection with the server
-const socket = new WebSocket('ws://' + window.location.host + '/websocket');
-let webRTCConnection;
-let token = "";
 
-if ((window.location.href).includes('signup_log')) {
-    window.location.replace('https://localhost/signin')
+if ((window.location.href).includes('login')) {
+    const socket = new WebSocket('ws://' + window.location.host + '/websocket');
+    let webRTCConnection;
+    let token = "";
 } else {
     console.log('Good page')
 }
@@ -130,11 +129,16 @@ function connectWebRTC() {
 
 
 function welcome() {
-    document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
-    get_chat_history()
-    const tokenLoad = document.getElementById("xsrf_token");
-    token = tokenLoad.value;
-    console.log(token);
+    if ((window.location.href).includes('login')) {
+        document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
+        get_chat_history()
+        const tokenLoad = document.getElementById("xsrf_token");
+        token = tokenLoad.value;
+        console.log(token);
+    } else {
+        console.log('Not upgrading to websocket');
+    }
+
 }
 
 

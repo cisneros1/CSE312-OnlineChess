@@ -41,7 +41,7 @@ def send_200_with_authtoken(self, length, mimetype, body, token):
     response = b"HTTP/1.1 200 OK"
     response += b"\r\nContent-Length: " + str(length).encode()
     response += b"\r\nContent-Type: " + mimetype.encode()
-    response += f"\r\nSet-Cookie: user={token}; HttpOnly; Max-Age=3600\r\n".encode()
+    response += b"\r\nSet-Cookie: user= " + str(token).encode() + b"; HttpOnly; Max-Age=3600"
     response += b"\r\n"
     response += nosniff.encode()
     response += b"\r\n\r\n"

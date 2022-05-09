@@ -80,22 +80,9 @@ def login(tcp_handler, received_data: bytes):
             print('Token is valid')
 
     if is_token_valid:
-        # check database for username and password
-        # json_users = (db.list_all()).copy()
-        # print(json_users)
-        # print('List is: ' + str(json_users))
-
         auth_token: str = secrets.token_hex(nbytes=80)
         auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
         userfound: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
-        # for json_dict in json_users:
-        #     if username == json_dict['username']:
-        #         encoded_pwd = password.encode()
-        #         hashed = bcrypt.hashpw(encoded_pwd, json_dict['salt'])
-        #         print('Comparing: ' + str(encoded_pwd) + ' with ' + str(hashed))
-        #         if bcrypt.checkpw(json_dict['password'].encode(), hashed):
-        #             userfound = True
-        #             print('User has been found in the database')
 
         if not userfound:
             print('That user does not exist')
@@ -110,10 +97,10 @@ def login(tcp_handler, received_data: bytes):
             file_path = file_paths(tcp_handler)
             with open(file_path['logged_in.html'], 'rb') as content:
                 body = content.read()
-            decoded = body.decode()
             mimetype = 'text/html; charset=utf-8'
             length = len(body)
 
+            print('Sending Auth Token: ' + str(auth_token))
             send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
 
             # send_200_with_cookie(tcp_handler, length,

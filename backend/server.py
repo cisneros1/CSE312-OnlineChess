@@ -22,9 +22,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     valid_tokens = []  # The same for each user
 
     full_bytes_sent: bytes = b''
+    
 
     def handle_websocket(self):
-        random_username = "User" + str(random.randint(0, 1000))
+        username = ""
+        ws_conn = []
+        for usertxt in self.usernames:
+            if len(usertxt) != 0:
+                username = usertxt
+                if username not in ws_users:
+                    ws_users.append(username)
+                    ws_conn.append(self)
+
         while True:
             data = self.request.recv(1024)
             if data != b'':
@@ -56,10 +65,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                         continue
                 elif message_type == 'chatMesssage':
                     # Send chat message
-                    response = {'messageType': 'chatMessage', 'username': random_username,
+                    response = {'messageType': 'chatMessage', 'username': username,
                                 'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
-                    add_user(random_username, response, cursor, db)  # Store on database
+                    add_user(username, response, cursor, db)  # Store on database
 
                     send_opcode = 129
                     response_frame = build_frame(response, send_opcode)
