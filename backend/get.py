@@ -9,6 +9,8 @@ import secrets
 import bcrypt
 import sys
 
+import database as db
+
 from generate_response import *
 from filepaths import file_paths
 from backend.template_engine import *
@@ -135,7 +137,7 @@ def websocket(self, received_data):
                 visits = int(directive_content.strip()) + 1
             elif directive_name == b'user':
                 user_token = directive_content.strip()
-                authenticated = is_authenticated(self.db, self.cursor, user_token)  # Check query token with hash
+                authenticated = is_authenticated(db, self.cursor, user_token)  # Check query token with hash
     # authenticated is the username
     if authenticated:
         ws_users[authenticated] = self

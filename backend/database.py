@@ -46,7 +46,7 @@ def is_authenticated(db, cursor, token):
         hashed_token = row[1]
         if hashed_token is None:
             continue
-        if bcrypt.checkpw(token, hashed_token):
+        if bcrypt.checkpw((token.encode()), (hashed_token.encode())):
             return username
 
     return ''
@@ -67,7 +67,7 @@ def authenticate_login(db, cursor, username, password, token):
         row = cursor.fetchone()
         if row:
             stored_password = row[0]
-            if bcrypt.checkpw(password, stored_password):
+            if bcrypt.checkpw(password, (stored_password.encode())):
                 post_token(db, cursor, username, token)
                 return True
             else:
