@@ -1,12 +1,8 @@
 // Establish a WebSocket connection with the server
+const socket = new WebSocket('ws://' + window.location.host + '/websocket');
+let webRTCConnection;
+let token = "";
 
-if ((window.location.href).includes('login')) {
-    const socket = new WebSocket('ws://' + window.location.host + '/websocket');
-    let webRTCConnection;
-    let token = "";
-} else {
-    console.log('Good page')
-}
 
 
 // Allow users to send messages by pressing enter instead of clicking the Send button
@@ -32,7 +28,7 @@ function addMessage(chatMessage) {
     console.log('The Chat Message to be added is below')
     console.log(chatMessage)
     let chat = document.getElementById('chat');
-    chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
+    chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
 
@@ -46,7 +42,7 @@ function get_chat_history() {
             console.log(this.response)
             const messages = JSON.parse(this.response);
             for (const message of messages) {
-                //console.log(message) // -> So I can see the message that will be added
+                console.log(message) // -> So I can see the message that will be added
                 addMessage(message);
                 gotten = 1;
             }
@@ -129,16 +125,11 @@ function connectWebRTC() {
 
 
 function welcome() {
-    if ((window.location.href).includes('login')) {
         document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
         get_chat_history()
         const tokenLoad = document.getElementById("xsrf_token");
         token = tokenLoad.value;
         console.log(token);
-    } else {
-        console.log('Not upgrading to websocket');
-    }
-
 }
 
 

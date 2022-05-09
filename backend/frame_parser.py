@@ -75,7 +75,7 @@ def parse_frame(tcp_instance, data) -> bytearray:
         f"opcode is {opcode} and disconnect opcode is {bytes_to_int(disconnect_opcode)} curbyte = {cur_byte}")
 
     if opcode == bytes_to_int(disconnect_opcode):
-        return bytearray('disconnect')  # return empty byte
+        return bytearray(b'disconnect')  # return empty byte
 
         # Read the mask and payload len
     mask_mask: int = bytes_to_int(b'\x80')  # mask for the mask bit. = 1000_0000

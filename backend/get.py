@@ -50,7 +50,7 @@ def handle_get(self, received_data):
 
     elif path == '/functions.js':
         javascript(self)
-
+    
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
 

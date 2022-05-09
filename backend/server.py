@@ -38,6 +38,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         while True:
             data = self.request.recv(1024)
+            print(str(data))
             if data != b'':
                 payload = parse_frame(self, data)
                 # TODO - How do we handle a disconnect request?
