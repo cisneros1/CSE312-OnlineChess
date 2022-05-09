@@ -7,7 +7,6 @@ from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
 # from backend.server import MyTCPHandler
-from backend.server import MyTCPHandler
 
 
 def handle_post(tcp_handler, received_data):
@@ -66,11 +65,11 @@ def login(tcp_handler, received_data: bytes):
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
-    cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
+    # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
-    print('Cookie:' + cookie)
+    # print('Cookie:' + cookie)
     # Check if token is valid
     is_token_valid: bool = False
 
@@ -90,21 +89,21 @@ def login(tcp_handler, received_data: bytes):
         else:
             # if user found
 
-            MyTCPHandler.usernames.append(username)
+            tcp_handler.usernames.append(username)
             new_token = secrets.token_urlsafe(32)
             tcp_handler.valid_tokens.append(new_token)
 
             file_path = file_paths(tcp_handler)
             with open(file_path['logged_in.html'], 'rb') as content:
                 body = content.read()
+            decoded = (body.decode()).replace('{{username}}', str(username))
+            body = decoded.encode()
             mimetype = 'text/html; charset=utf-8'
             length = len(body)
 
             print('Sending Auth Token: ' + str(auth_token))
             send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
 
-            # send_200_with_cookie(tcp_handler, length,
-            #                      mimetype, body, cookie)
 
     else:
         send_404(tcp_handler)
@@ -118,7 +117,7 @@ def signup(tcp_handler, received_data):
     username = received_data.split(b'name="username"\r\n\r\n')[
         1].split(b'\r\n')[0].decode()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
-    cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
+    # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
@@ -136,21 +135,6 @@ def signup(tcp_handler, received_data):
         if username and password:
             hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
             register_user(db, cursor, username, hashed_password)
-        # print('Hasing and Storing password...')
-        # encoded_pwd = password.encode()
-        # salt = bcrypt.gensalt()
-        # hashed = bcrypt.hashpw(encoded_pwd, salt)
-        # print(salt)
-        # print(hashed)
-        # # store user
-        # id = db.get_next_id()
-        # user_dict = {"_id": id, "username": username,
-        #              "password": password, "salt": salt}
-        # db.insert(user_dict)
-        # print('The following has been assed to users: ' + str(user_dict))
-        # MyTCPHandler.registered_users[username] = tcp_handler   # Associate a
-        # new_token = secrets.token_urlsafe(32)
-        # tcp_handler.valid_tokens.append(new_token)
 
         send_301(tcp_handler, 'http://localhost:8080/signin')
         print('REDIRECT WAS SENT')

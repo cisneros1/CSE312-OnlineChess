@@ -26,6 +26,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def handle_websocket(self):
         username = ""
+        ws_users = []
         ws_conn = []
         for usertxt in self.usernames:
             if len(usertxt) != 0:
@@ -33,6 +34,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 if username not in ws_users:
                     ws_users.append(username)
                     ws_conn.append(self)
+        print('usernmae: ' + str(username))
 
         while True:
             data = self.request.recv(1024)

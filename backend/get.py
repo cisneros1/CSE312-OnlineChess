@@ -150,6 +150,7 @@ def websocket(self, received_data):
         return_key = hashlib.sha1(key).digest()
         return_key = base64.b64encode(return_key)
         send_101(self, return_key)
+        self.handle_websocket()
 
 
 def chat(self, received_data):
