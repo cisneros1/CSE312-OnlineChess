@@ -65,6 +65,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response_frame = build_frame(response, send_opcode)
                     for connection in MyTCPHandler.web_sockets:
                         connection.request.sendall(response_frame)
+
                 elif message_type == 'chessMessage':
                     pass
             sys.stdout.flush()
