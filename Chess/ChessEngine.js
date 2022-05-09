@@ -1,3 +1,6 @@
+// const socket = new WebSocket('ws://' + window.location.host + '/websocket');
+
+
 class Piece {
     constructor(piece_name, grid_coord) {
         this.piece_name = piece_name;   // could be "b_pawn", w_knight", etc
