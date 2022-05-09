@@ -345,18 +345,28 @@ class GameState {
         return false;
     }
 
+
     // This will remove moves that put the player in check
+    // TODO - finish this method
     filterMoves() {
         let saved_board = this.saveBoardState();
         let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
-        for (let piece of player_pieces){
-            for (const move of piece.moves){
-                this.MakeMove(piece, move);
-                let in_check = this.in_check();
-                if (in_check){
-                    ;
-                }
+        for (let piece of player_pieces) {
+            for (const move of piece.moves) {
+                // piece.moves = piece.moves.filter(filterMoveHelper);
+                // this.MakeMove(piece, move);
+                // let in_check = this.in_check();
+                // if (in_check) {
+                //     ;
+                // }
+                // piece.moves = piece.moves.filter(function () {
+                //     this.MakeMove(piece, move);
+                //
+                // });
                 this.loadBoardState(saved_board);
+            }
+            for (const move of piece.attack_moves) {
+                ;
             }
         }
     }
@@ -484,6 +494,7 @@ const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
 console.log("Board Width: " + board_size);
 let all_pieces = [];    // Do not change this.
+
 
 // Display a chess on the board
 function displayImage(piece_name, x, y, height, width) {
