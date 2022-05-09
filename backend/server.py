@@ -25,6 +25,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     
 
     def handle_websocket(self):
+        print(f"Upgraded to websocket connection on instance {self}")
         username = ""
         ws_users = []
         ws_conn = []
@@ -40,7 +41,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             data = self.request.recv(1024)
             print(str(data))
             if data != b'':
-                payload = parse_frame(self, data)
+                payload = parse_frame(self, data)   # This function parses the frame and returns the payload (bytearray)
+                print(f'payload is {payload}')
                 # TODO - How do we handle a disconnect request?
                 if payload == b'disconnect':
                     MyTCPHandler.web_sockets.remove(self)
