@@ -61,7 +61,7 @@ def chat(tcp_handler, received_data: bytes):
 
 
 def login(tcp_handler, received_data: bytes):
-    print('-------------------------')
+    print('----------- post login --------------')
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
@@ -111,7 +111,7 @@ def login(tcp_handler, received_data: bytes):
 
 
 def signup(tcp_handler, received_data):
-    print('-------------------------')
+    print('------------ post /signup_log -------------')
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[
         1].split(b'\r\n')[0].decode()
     username = received_data.split(b'name="username"\r\n\r\n')[

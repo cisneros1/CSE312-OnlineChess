@@ -41,7 +41,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             data = self.request.recv(1024)
             print(str(data))
             if data != b'':
-                payload = parse_frame(self, data)   # This function parses the frame and returns the payload (bytearray)
+                payload: bytearray = parse_frame(self, data)   # This function parses the frame
                 print(f'payload is {payload}')
                 # TODO - How do we handle a disconnect request?
                 if payload == b'disconnect':
