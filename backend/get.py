@@ -72,11 +72,9 @@ def handle_get(self, received_data):
 def index(self, received_data: bytes):
     file_path = file_paths(self)
     path, headers, content = parse_request(received_data)
-    print(f'headers = {headers}')
     template_dict = {'user': 'guest'}  # this will be fed into the template engine
 
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))  # Get the cookie header.
-    print(f'set_cookies = {set_cookies}')
     authenticated_user = ''
     if set_cookies:
         cookie_list = set_cookies[0][1].split(b';')
@@ -92,11 +90,10 @@ def index(self, received_data: bytes):
                 template_dict['user'] = str(authenticated_user)
 
     body = render_template(file_path['index.html'], template_dict).encode()
-    print(f'body = {body}')
     # with open(file_path['index.html'], 'rb') as content:
     #     body = content.read()
     mimetype = 'text/html; charset=utf-8'
-    length = os.path.getsize(file_path['index.html'])
+    length = len(body)
 
     send_200(self, length, mimetype, body)
 
