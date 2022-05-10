@@ -160,17 +160,19 @@ def websocket(self, received_data):
                 print('Checking token: ' + str(user_token))
                 authenticated = is_authenticated(db, db.cursor, user_token)  # Check query token with hash
     # authenticated is the username
-    if authenticated:
-        ws_users[authenticated] = self
-        username = "User" + str(random.randint(0, 1000))
-        print('User: ' + username + ' has opened a websocket connection')
-        key = received_data.split(b'Sec-WebSocket-Key: ')[1]
-        key = key.split(b'\r\n')[0]
-        key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
-        return_key = hashlib.sha1(key).digest()
-        return_key = base64.b64encode(return_key)
-        send_101(self, return_key)
-        self.handle_websocket()
+    # if authenticated:
+    ws_users[authenticated] = self
+    username = "User" + str(random.randint(0, 1000))
+    print('User: ' + username + ' has opened a websocket connection')
+    key = received_data.split(b'Sec-WebSocket-Key: ')[1]
+    key = key.split(b'\r\n')[0]
+    key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+    return_key = hashlib.sha1(key).digest()
+    return_key = base64.b64encode(return_key)
+    send_101(self, return_key)
+    self.handle_websocket(authenticated)
+    # else:
+    #     send_301(self, '/')
 
 
 def chat(self, received_data):

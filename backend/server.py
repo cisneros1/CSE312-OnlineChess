@@ -24,18 +24,21 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     full_bytes_sent: bytes = b''
     
 
-    def handle_websocket(self):
-        print(f"Upgraded to websocket connection on instance {self}")
-        username = ""
-        ws_users = []
-        ws_conn = []
-        for usertxt in self.usernames:
-            if len(usertxt) != 0:
-                username = usertxt
-                if username not in ws_users:
-                    ws_users.append(username)
-                    ws_conn.append(self)
-        print('usernmae: ' + str(username))
+    def handle_websocket(self, username):
+        print(f"Upgraded to websocket connection on instance {self} with user {username}")
+        if self not in MyTCPHandler.web_sockets:
+            MyTCPHandler.web_sockets.append(self)
+
+        # username = ""
+        # ws_users = []
+        # ws_conn = []
+        # for usertxt in self.usernames:
+        #     if len(usertxt) != 0:
+        #         username = usertxt
+        #         if username not in ws_users:
+        #             ws_users.append(username)
+        #             ws_conn.append(self)
+        # print('usernmae: ' + str(username))
 
         while True:
             data = self.request.recv(1024)
@@ -68,15 +71,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     except Exception as e:
                         print(e)
                         continue
-                elif message_type == 'chatMesssage':
+                elif message_type == 'chatMessage':
                     # Send chat message
                     response = {'messageType': 'chatMessage', 'username': username,
                                 'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
                     add_user(username, response, cursor, db)  # Store on database
 
+
                     send_opcode = 129
                     response_frame = build_frame(response, send_opcode)
+                    all_messages = retrieve_users(cursor, db)
+                    print(f'response = {response} and response_frame = {response_frame} and all_messages = {all_messages}\r\n')
                     for connection in MyTCPHandler.web_sockets:
                         connection.request.sendall(response_frame)
 

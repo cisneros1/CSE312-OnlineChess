@@ -57,6 +57,7 @@ function get_chat_history() {
 socket.onmessage = function (ws_message) {
     const message = JSON.parse(ws_message.data);
     const messageType = message.messageType
+    console.log('Got message: ' + message)
 
     switch (messageType) {
         case 'chatMessage':
@@ -127,9 +128,9 @@ function connectWebRTC() {
 function welcome() {
         document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
         get_chat_history()
-        const tokenLoad = document.getElementById("xsrf_token");
-        token = tokenLoad.value;
-        console.log(token);
+        // const tokenLoad = document.getElementById("xsrf_token");
+        // token = tokenLoad.value;
+        // console.log(token);
 }
 
 
@@ -139,4 +140,4 @@ function redirect() {
     xmlHttpReq.send(null);
     return xmlHttpReq.responseText;
 }
-console.log(httpGet('https://jsonplaceholder.typicode.com/posts'));
+// console.log(httpGet('https://jsonplaceholder.typicode.com/posts'));

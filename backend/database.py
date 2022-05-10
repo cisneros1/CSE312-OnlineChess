@@ -118,21 +118,21 @@ def retrieve_users(cursor, db):
     cursor.execute(query)
     all_users = cursor.fetchall()
     user_array = []
-    for user in all_users:
+    for a_user in all_users:
         # message_type = user[0]
-        user_name = user[0]
-        user_message = user[1]
-        user_id = user[2]
+        user_name = a_user[0]
+        user_message = a_user[1]
+        user_id = a_user[2]
         user_array.append((user_name, user_message, user_id))
     return user_array
 
 
 def retrieve_chathistory(cursor, db):
-    query = "SELECT json_message from users"
+    query = "SELECT json_message FROM users"
     cursor.execute(query)
     all_users = cursor.fetchall()
     json_messages = []
-    for user in all_users:
-        message = json.loads(user[0])
+    for a_user in all_users:
+        message = json.loads(a_user[0])
         json_messages.append(message)
     return json_messages
