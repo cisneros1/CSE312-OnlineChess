@@ -2,6 +2,7 @@ import mysql.connector as mysql
 import os
 import json
 import bcrypt
+
 # This retrieves the environment variable from the docker compose file
 user = os.getenv('DATABASE_USER')  # This is set to 'Felipe' in the docker compose file for now
 password = os.getenv('DATABASE_PASSWORD')  # 'Gallardo'
@@ -36,7 +37,7 @@ for database in databases:
     print(database)
 
 
-def is_authenticated(db, cursor, token):
+def is_authenticated(db, cursor, token: bytes):
     query = 'SELECT username, auth_token FROM registered_users'
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -46,7 +47,7 @@ def is_authenticated(db, cursor, token):
         hashed_token = row[1]
         if hashed_token is None:
             continue
-        if bcrypt.checkpw(token, (hashed_token.encode())):
+        if bcrypt.checkpw(token, hashed_token):
             return username
 
     return ''
@@ -59,7 +60,7 @@ def post_token(db, cursor, username, token):
     db.commit()
 
 
-def authenticate_login(db, cursor, username, password, token):
+def authenticate_login(db, cursor, username: str, password: bytes, token: bytes):
     try:
         query = "SELECT password FROM registered_users WHERE username = %s"
         values = (username,)
@@ -82,7 +83,7 @@ def authenticate_login(db, cursor, username, password, token):
 # Register a user and store a hash of their password on the database
 # password parameter is assumed to already be hashed
 # If a username is already present in the database then simply update the password
-def register_user(db, cursor, username, password):
+def register_user(db, cursor, username: str, password: bytes):
     select_query = "SELECT * FROM registered_users WHERE username = (%s)"
     values = (username,)
     cursor.execute(select_query, values)

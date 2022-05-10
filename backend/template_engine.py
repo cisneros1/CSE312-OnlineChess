@@ -35,6 +35,8 @@ def render_loop(template, data):
 
         final_content = template[:start_index] + loop_content + template[end_index + len(loop_end_tag):]
         return final_content
+    else:
+        return template
 
 
 def escape_html(message: str):
