@@ -30,13 +30,12 @@ def handle_get(self, received_data):
     if path == '/':
         index(self, received_data)
 
-    elif path == '/login' or path == '/logged_in':
+    elif path == '/login':
         # (self, received_data)
         send_404(self)
 
     elif path == '/signup_log':
         send_301(self, 'http://localhost:8080/signin')
-
 
     elif path == '/signin':
         signin(self)
@@ -44,11 +43,17 @@ def handle_get(self, received_data):
     elif path == '/signup':
         signup(self)
 
+
     elif path == '/websocket':
         websocket(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
+    
+    elif path == '/online-users':
+        showUsers(self, received_data)
+
+
 
     elif path == '/functions.js':
         javascript(self)
@@ -149,7 +154,7 @@ def signup(tcp_handler):
 
     send_200(tcp_handler, length, mimetype, body)
 
-
+# --------------------------------------------------------- WEBSOCKET
 def websocket(self, received_data):
     print('\r\n--------- Started websocket upgrade -------------\r\n')
     path, headers, content = parse_request(received_data)
@@ -194,6 +199,18 @@ def chat(self, received_data):
     json_array = json.dumps(chat_array)
     send_200(self, len(json_array), 'application/json', json_array.encode())
 
+def showUsers(self, received_data):
+    # {'username': 'user'}
+    # auth users  --   {'username': '', 'authToken': 'token'}
+    users = [] # This will be a list of json
+    for user in authenticated_users.keys():
+        users.append(user)
+    
+    json_list = json.dumps(users)
+    send_200(self, len(json_list), 'application/json', json_list.encode())
+
+        
+# --------------------------------------------------------- WEBSOCKET END
 
 #   path = '/functions.js'
 def javascript(self):

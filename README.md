@@ -33,9 +33,4 @@ response:
                 POST Response :: Re routes user back to /signin
 
 
-user once logged in
-'/logged_in'
-    ---> This can only be accessed through sign in form submission
-    ---> A normal GET request to this page results in an error
-
     

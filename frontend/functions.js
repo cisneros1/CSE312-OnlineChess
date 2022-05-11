@@ -36,7 +36,7 @@ function addUser(user) {
     console.log('The Chat Message to be added is below')
     console.log(user)
     let chat = document.getElementById('onlineUsers');
-    chat.innerHTML += "<b>" + chatMessage["username"];
+    chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: ";
 }
 
 function get_online_users() {
@@ -47,9 +47,9 @@ function get_online_users() {
             console.log('The below response is about to be parsed')
             console.log(this.response)
             const users = JSON.parse(this.response);
-            for (const user of messages) {
+            for (const user of users) {
                 console.log(user);
-                addMessage(user);
+                addUser(user);
             }
         }
     };
@@ -76,7 +76,6 @@ function get_chat_history() {
             }
         }
     };
-
     request.open("GET", "/chat-history");
     request.send();
 }

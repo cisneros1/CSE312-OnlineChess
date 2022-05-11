@@ -103,13 +103,6 @@ def login(tcp_handler, received_data: bytes):
         template_dict = {'username': username, 'loop_data': auth_users}
 
         file_path = file_paths(tcp_handler)
-        # body = render_template(file_path['logged_in.html'], template_dict).encode()   # not templating here anymore
-        # with open(file_path['logged_in.html'], 'rb') as content:
-        #     body = content.read()
-        # decoded = (body.decode()).replace('{{username}}', str(username))
-        # body = decoded.encode()
-        # mimetype = 'text/html; charset=utf-8'
-        # length = len(body)
 
         print('Sending Auth Token: ' + str(auth_token))
         send_301_with_token(tcp_handler, '/', auth_token)
