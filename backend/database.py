@@ -37,11 +37,11 @@ for database in databases:
     print(database)
 
 
-# for debugging purposes
-def retrieve_authenticated_users():
-    query = 'SELECT * FROM registered_users'
-    cursor.execute(query)
-    return cursor.fetchall()
+# # for debugging purposes
+# def retrieve_authenticated_users():
+#     query = 'SELECT * FROM registered_users'
+#     cursor.execute(query)
+#     return cursor.fetchall()
 
 
 def is_authenticated(db, cursor, token: bytes):

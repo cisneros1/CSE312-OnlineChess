@@ -31,6 +31,34 @@ function addMessage(chatMessage) {
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
+// Render online users in html
+function addUser(user) {
+    console.log('The Chat Message to be added is below')
+    console.log(user)
+    let chat = document.getElementById('onlineUsers');
+    chat.innerHTML += "<b>" + chatMessage["username"];
+}
+
+function get_online_users() {
+    console.log('Getting Chat history');
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log('The below response is about to be parsed')
+            console.log(this.response)
+            const users = JSON.parse(this.response);
+            for (const user of messages) {
+                console.log(user);
+                addMessage(user);
+            }
+        }
+    };
+    request.open("GET", "/online-users");
+    request.send();
+}
+
+
+
 
 // called when the page loads to get the chat_history
 function get_chat_history() {
@@ -42,7 +70,7 @@ function get_chat_history() {
             console.log(this.response)
             const messages = JSON.parse(this.response);
             for (const message of messages) {
-                console.log(message) // -> So I can see the message that will be added
+                console.log(message); // -> So I can see the message that will be added
                 addMessage(message);
                 gotten = 1;
             }
