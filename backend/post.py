@@ -65,29 +65,17 @@ def login(tcp_handler, received_data: bytes):
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
-    # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
+    
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
 
-    # print('Cookie:' + cookie)
-    # Check if token is valid
-    # is_token_valid: bool = False
-    #
-    # for t in tcp_handler.valid_tokens:
-    #     if t == token:
-    #         is_token_valid = True
-    #         print('Token is valid')
-
-
-    # if is_token_valid:
     auth_token: str = secrets.token_hex(nbytes=80)
-    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), bcrypt.gensalt())
-    user_found: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
+    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), (bcrypt.gensalt()))
+    user_found: bool = authenticate_login(db, cursor, username, (password.encode()), auth_token_hashed)
 
     if not user_found:
         print('That user does not exist')
-        # send_404(tcp_handler)
         send_301(tcp_handler, '/')
     else:
         # if user found

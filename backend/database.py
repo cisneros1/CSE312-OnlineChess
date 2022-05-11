@@ -85,14 +85,19 @@ def post_token(db, cursor, username: str, token: bytes):
         print(f"Attempted to update token on username = {username}")
 
 
-def authenticate_login(db, cursor, username: str, password: bytes, token: bytes):
+def authenticate_login(db, cursor, username: str, password, token):
+    print('AUTHENTICATING LOGIN')
+    print(f'Username: {username}')
+    print(f'Password: {password}')
+    print(f'token: {token}')
+    
     try:
         query = "SELECT password FROM registered_users WHERE username = %s"
         values = (username,)
         cursor.execute(query, values)
         row = cursor.fetchone()
         if row:
-            stored_password: bytes = row[0]
+            stored_password = row[0]
             if bcrypt.checkpw(password, stored_password):
                 post_token(db, cursor, username, token)
                 return True
