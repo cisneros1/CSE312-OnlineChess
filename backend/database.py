@@ -61,12 +61,25 @@ def is_authenticated(db, cursor, token: bytes):
         for row in rows:
             username = row[0]
             hashed_token = row[2]
-            print(f'checking user = {username} and stored token = {hashed_token}')
-            if hashed_token is None:
-                continue
-            if bcrypt.checkpw(token, hashed_token):
-                print(f'Found a match with user {username}')
-                return username
+            
+            if (isinstance(hashed_token, bytes) or isinstance(hashed_token, bytearray)):
+                print(f'checking user = {username} and stored token = {hashed_token}')
+                if hashed_token is None:
+                    continue
+                if bcrypt.checkpw(token, hashed_token):
+                    print(f'Found a match with user {username}')
+                    return username
+                
+            else:
+                print(f'checking user = {username} and stored token = {hashed_token}')
+                if hashed_token is None:
+                    continue
+                if bcrypt.checkpw(token, str(hashed_token).encode()):
+                    post_token(db, cursor, username, token)
+                    return username
+                else:
+                    return ""
+                
     except Exception as e:
         print(f'2. Attempted to authenticate token = {token}. Got error {e}')
         return ''
@@ -98,11 +111,20 @@ def authenticate_login(db, cursor, username: str, password, token):
         row = cursor.fetchone()
         if row:
             stored_password = row[0]
-            if bcrypt.checkpw(password, stored_password):
-                post_token(db, cursor, username, token)
-                return True
+            print(f'Stored Password: {stored_password}')
+            
+            if (isinstance(stored_password, bytes) or isinstance(stored_password, bytearray)):
+                if bcrypt.checkpw(password, stored_password):
+                    post_token(db, cursor, username, token)
+                    return True
+                else:
+                    return False
             else:
-                return False
+                if bcrypt.checkpw(password, str(stored_password).encode()):
+                    post_token(db, cursor, username, token)
+                    return True
+                else:
+                    return False
         else:
             return False
     except Exception as e:

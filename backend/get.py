@@ -15,7 +15,7 @@ from generate_response import *
 from filepaths import file_paths
 from backend.template_engine import *
 from backend.parsers import parse_request
-from stored_users import authenticated_users
+from stored_users import *
 
 ws_users = {}
 
@@ -200,16 +200,15 @@ def chat(self, received_data):
     send_200(self, len(json_array), 'application/json', json_array.encode())
 
 def showUsers(self, received_data):
-    # {'username': 'user'}
-    # auth users  --   {'username': '', 'authToken': 'token'}
+    print(f'Websocket Connections:  {authenticated_users}')
+    
     users = [] # This will be a list of json
     for user in authenticated_users.keys():
         users.append(user)
-    
-    json_list = json.dumps(users)
-    send_200(self, len(json_list), 'application/json', json_list.encode())
+    json_array = json.dumps(users)
+    print(f'return jsonlist: {json_array}')
+    send_200(self, len(json_array), 'application/json',json_array.encode())
 
-        
 # --------------------------------------------------------- WEBSOCKET END
 
 #   path = '/functions.js'

@@ -124,7 +124,9 @@ def signup(tcp_handler, received_data):
     if is_token_valid:
         # check password requirements
         if username and password:
-            hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+            hashed_password: bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+            print(f'HASED_PWD: {hashed_password}')
+            
             register_user(db, cursor, username, hashed_password)
 
         send_301(tcp_handler, 'http://localhost:8080/signin')

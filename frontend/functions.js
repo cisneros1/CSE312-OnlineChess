@@ -33,14 +33,14 @@ function addMessage(chatMessage) {
 
 // Render online users in html
 function addUser(user) {
-    console.log('The Chat Message to be added is below')
+    console.log('Adding a new user to html')
     console.log(user)
-    let chat = document.getElementById('onlineUsers');
-    chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: ";
+    let box = document.getElementById('onlineUsers');
+    box.innerHTML += "<b>" + user + "</b>: ";
 }
 
 function get_online_users() {
-    console.log('Getting Chat history');
+    console.log('Getting Online Users');
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
@@ -66,13 +66,12 @@ function get_chat_history() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
-            console.log('The below response is about to be parsed')
+            console.log('The below USER response is about to be parsed')
             console.log(this.response)
             const messages = JSON.parse(this.response);
             for (const message of messages) {
                 console.log(message); // -> So I can see the message that will be added
                 addMessage(message);
-                gotten = 1;
             }
         }
     };
@@ -153,11 +152,12 @@ function connectWebRTC() {
 
 
 function welcome() {
-        document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
-        get_chat_history()
-        // const tokenLoad = document.getElementById("xsrf_token");
-        // token = tokenLoad.value;
-        // console.log(token);
+    document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
+    get_chat_history();
+    get_online_users();
+    // const tokenLoad = document.getElementById("xsrf_token");
+    // token = tokenLoad.value;
+    // console.log(token);
 }
 
 
