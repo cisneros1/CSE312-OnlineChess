@@ -48,7 +48,10 @@ def handle_get(self, received_data):
         websocket(self, received_data)
 
     elif path == '/chat-history':
-        chat(self, received_data)
+        chat(self)
+        
+    elif path == '/online-users':
+        seeUsers(self)
 
     elif path == '/functions.js':
         javascript(self)
@@ -68,6 +71,26 @@ def handle_get(self, received_data):
         favicon(self, path)
     else:
         print('Unrecognized Request, sending 404')
+
+
+
+def seeUsers(self):
+    # Returns  a list of users that are stored in the database which have opened a websocket connection
+    print('\r\n----------------/online-users--------------\r\n')
+    full_name_array = retrieve_userlist(cursor, db)
+    print(f"\r\nCurrent chat history are {full_name_array}\r\n")
+    json_array = json.dumps(full_name_array)
+    send_200(self, len(json_array), 'application/json', json_array.encode())
+
+
+def chat(self):
+    # Returns list of comments stored in the database
+    print('\r\n------------- /chat-history ------------\r\n')
+    chat_array = retrieve_chathistory(cursor, db)
+    print(f"\r\nCurrent chat history are {chat_array}\r\n")
+    json_array = json.dumps(chat_array)
+    send_200(self, len(json_array), 'application/json', json_array.encode())
+
 
 
 def index(self, received_data: bytes):
@@ -186,13 +209,6 @@ def websocket(self, received_data):
     #     send_301(self, '/')
 
 
-def chat(self, received_data):
-    # Returns list of comments stored in the database
-    print('\r\n------------- /chat-history ------------\r\n')
-    chat_array = retrieve_chathistory(cursor, db)
-    print(f"\r\nCurrent chat history are {chat_array}\r\n")
-    json_array = json.dumps(chat_array)
-    send_200(self, len(json_array), 'application/json', json_array.encode())
 
 
 #   path = '/functions.js'

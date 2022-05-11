@@ -163,4 +163,15 @@ def retrieve_chathistory(cursor, db):
     for a_user in all_users:
         message = json.loads(a_user[0])
         json_messages.append(message)
-    return json_messages
+    return json_messages # --> This is a list that is being returned
+
+def retrieve_userlist(cursor, db):
+    query = "SELECT json_user FROM users"
+    cursor.execute(query)
+    all_users = cursor.fetchall()
+    json_users = []
+    for user in all_users:
+        to_add = json.loads(user[0]) # --> returns object representing string
+        json_users.append(to_add)
+    return json_users
+        

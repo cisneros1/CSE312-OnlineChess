@@ -31,6 +31,35 @@ function addMessage(chatMessage) {
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
+function addUser(user) {
+    console.log('A new user has been added to the list')
+    console.log(user)
+    let chat = document.getElementById('onlineUsers');
+    chat.innerHTML += "<b>" + chatMessage["username"] + "</b>";
+}
+
+
+
+// Function sends a GET /online-uers request to the server
+// the server then responds with a list of JSON objects
+// Formatted as such ::  [{'username': 'user1'}, {'username': 'user2'}]
+function get_online_users() {
+    console.log('Getting Online Users');
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log('The below response is about to be parsed')
+            console.log(this.response)
+            const users = JSON.parse(this.response);
+            for (const user of messages) {
+                console.log(user) 
+                addUser(user);
+            }
+        }
+    };
+    request.open("GET", "/online-users");
+    request.send();
+}
 
 // called when the page loads to get the chat_history
 function get_chat_history() {
@@ -126,11 +155,9 @@ function connectWebRTC() {
 
 
 function welcome() {
-        document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
-        get_chat_history()
-        // const tokenLoad = document.getElementById("xsrf_token");
-        // token = tokenLoad.value;
-        // console.log(token);
+    document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
+    get_chat_history();
+    get_online_users();
 }
 
 
@@ -140,4 +167,3 @@ function redirect() {
     xmlHttpReq.send(null);
     return xmlHttpReq.responseText;
 }
-// console.log(httpGet('https://jsonplaceholder.typicode.com/posts'));

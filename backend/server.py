@@ -24,6 +24,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     valid_tokens = []  # The same for each user
 
     full_bytes_sent: bytes = b''
+    users_online = {} # this should map name and webscoket instance  === {'brian': 'MYTCP123'}
+    
 
     def handle_websocket(self, username):
         print(f"\r\nUpgraded to websocket connection on instance {self} with user {username}\r\n")
