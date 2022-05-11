@@ -352,22 +352,20 @@ class GameState {
         let saved_board = this.saveBoardState();
         let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
         for (let piece of player_pieces) {
+            let filtered_moves = [];
+            let filtered_capture_moves = [];
             for (const move of piece.moves) {
-                // piece.moves = piece.moves.filter(filterMoveHelper);
-                // this.MakeMove(piece, move);
-                // let in_check = this.in_check();
-                // if (in_check) {
-                //     ;
-                // }
-                // piece.moves = piece.moves.filter(function () {
-                //     this.MakeMove(piece, move);
-                //
-                // });
+                this.MakeMove(piece, move);
+                this.generateAllMoves();
+                let in_check = this.in_check();
+                if (!in_check) {
+                    filtered_moves.push(move);
+                    filtered_capture_moves.push(move);
+                }
                 this.loadBoardState(saved_board);
             }
-            for (const move of piece.attack_moves) {
-                ;
-            }
+            piece.moves = filtered_moves;
+            piece.attack_moves = filtered_capture_moves;
         }
     }
 

@@ -8,12 +8,14 @@ from get import *
 from database import *
 from post import *
 from frame_parser import parse_frame, build_frame
+from stored_users import authenticated_users, web_socket_connections
+import time
 
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
-    clients = []
-    registered_users = {}  # username -> self
-    web_sockets = []  # all websocket connections
+    # clients = []
+    # registered_users = {}  # username -> self
+    # web_sockets = []  # all websocket connections
     if os.path.isdir('/root'):
         inDocker = True
 
@@ -22,12 +24,19 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     valid_tokens = []  # The same for each user
 
     full_bytes_sent: bytes = b''
-    
 
     def handle_websocket(self, username):
-        print(f"Upgraded to websocket connection on instance {self} with user {username}")
-        if self not in MyTCPHandler.web_sockets:
-            MyTCPHandler.web_sockets.append(self)
+        print(f"\r\nUpgraded to websocket connection on instance {self} with user {username}\r\n")
+        # Add this instance to global variable containing all the websocket connections
+        # TODO - right users can see new changes on reload but cannot send message
+        registered = False
+        if username in authenticated_users:
+            print(f"Added {username} to websocket connections")
+            web_socket_connections[username] = self
+            registered = True
+
+        while not registered:
+            pass
 
         # username = ""
         # ws_users = []
@@ -42,13 +51,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         while True:
             data = self.request.recv(1024)
-            print(str(data))
+            # print(str(data))
             if data != b'':
-                payload: bytearray = parse_frame(self, data)   # This function parses the frame
+                payload: bytearray = parse_frame(self, data)  # This function parses the frame
                 print(f'payload is {payload}')
                 # TODO - How do we handle a disconnect request?
                 if payload == b'disconnect':
-                    MyTCPHandler.web_sockets.remove(self)
+                    print(f'\r\nDisconnecting on user {username}\r\n')
+                    web_socket_connections.pop(username, None)  # delete websocket connection from global variable
                     break
                 # Pack into a json object
                 message = {}
@@ -63,7 +73,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 message_type: str = message['messageType']
                 if message_type.startswith('webRTC-'):
                     try:
-                        for connection in MyTCPHandler.web_sockets:
+                        for connection in web_socket_connections.values():
                             if connection != self:
                                 frame = build_frame(payload.decode(), 129)
                                 print(f"Sending frame of size {len(frame)} with message type {message_type}")
@@ -78,12 +88,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response = json.dumps(response)
                     add_user(username, response, cursor, db)  # Store on database
 
-
                     send_opcode = 129
                     response_frame = build_frame(response, send_opcode)
-                    all_messages = retrieve_users(cursor, db)
-                    print(f'response = {response} and response_frame = {response_frame} and all_messages = {all_messages}\r\n')
-                    for connection in MyTCPHandler.web_sockets:
+                    for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
 
                 elif message_type == 'chessMessage':

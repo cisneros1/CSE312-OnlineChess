@@ -6,7 +6,7 @@ import bcrypt
 from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
-# from backend.server import MyTCPHandler
+from stored_users import authenticated_users
 
 
 def handle_post(tcp_handler, received_data):
@@ -59,55 +59,65 @@ def chat(tcp_handler, received_data: bytes):
         print('404 in chat')
         send_404(tcp_handler)
 
-
+# /login
 def login(tcp_handler, received_data: bytes):
     print('----------- post login --------------')
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
-    username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
+
     # print('Cookie:' + cookie)
     # Check if token is valid
-    is_token_valid: bool = False
-
-    for t in tcp_handler.valid_tokens:
-        if t == token:
-            is_token_valid = True
-            print('Token is valid')
-
-    if is_token_valid:
-        auth_token: str = secrets.token_hex(nbytes=80)
-        auth_token_hashed: bytes = bcrypt.hashpw((auth_token.encode()), bcrypt.gensalt())
-        userfound: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
-
-        if not userfound:
-            print('That user does not exist')
-            send_404(tcp_handler)
-        else:
-            # if user found
-
-            tcp_handler.usernames.append(username)
-            new_token = secrets.token_urlsafe(32)
-            tcp_handler.valid_tokens.append(new_token)
-
-            file_path = file_paths(tcp_handler)
-            with open(file_path['logged_in.html'], 'rb') as content:
-                body = content.read()
-            decoded = (body.decode()).replace('{{username}}', str(username))
-            body = decoded.encode()
-            mimetype = 'text/html; charset=utf-8'
-            length = len(body)
-
-            print('Sending Auth Token: ' + str(auth_token))
-            send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
+    # is_token_valid: bool = False
+    #
+    # for t in tcp_handler.valid_tokens:
+    #     if t == token:
+    #         is_token_valid = True
+    #         print('Token is valid')
 
 
+    # if is_token_valid:
+    auth_token: str = secrets.token_hex(nbytes=80)
+    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), bcrypt.gensalt())
+    user_found: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
+
+    if not user_found:
+        print('That user does not exist')
+        # send_404(tcp_handler)
+        send_301(tcp_handler, '/')
     else:
-        send_404(tcp_handler)
-        print('404 has been sent')
+        # if user found
+        authenticated_users[username] = auth_token  # Save user to global hashmap of users
+        # print(f'Authenticated users are {authenticated_users}')
+        tcp_handler.usernames.append(username)
+        new_token = secrets.token_urlsafe(32)
+        tcp_handler.valid_tokens.append(new_token)
+        # TODO - find a way to handle disconnects
+        auth_users = []
+        for auth_user in authenticated_users.keys():
+            auth_users.append({'logged_in_user': auth_user})
+        template_dict = {'username': username, 'loop_data': auth_users}
+
+        file_path = file_paths(tcp_handler)
+        # body = render_template(file_path['logged_in.html'], template_dict).encode()   # not templating here anymore
+        # with open(file_path['logged_in.html'], 'rb') as content:
+        #     body = content.read()
+        # decoded = (body.decode()).replace('{{username}}', str(username))
+        # body = decoded.encode()
+        # mimetype = 'text/html; charset=utf-8'
+        # length = len(body)
+
+        print('Sending Auth Token: ' + str(auth_token))
+        send_301_with_token(tcp_handler, '/', auth_token)
+        # send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
+
+    # else:
+    #     send_404(tcp_handler)
+    #     print('404 has been sent')
 
 
 def signup(tcp_handler, received_data):

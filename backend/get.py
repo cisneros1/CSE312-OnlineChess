@@ -15,6 +15,7 @@ from generate_response import *
 from filepaths import file_paths
 from backend.template_engine import *
 from backend.parsers import parse_request
+from stored_users import authenticated_users
 
 ws_users = {}
 
@@ -72,10 +73,11 @@ def handle_get(self, received_data):
 def index(self, received_data: bytes):
     file_path = file_paths(self)
     path, headers, content = parse_request(received_data)
-    template_dict = {'user': 'guest'}  # this will be fed into the template engine
+    template_dict = {'user': 'guest', 'loop_data': []}  # this will be fed into the template engine
 
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))  # Get the cookie header.
     authenticated_user = ''
+    auth_token = b''
     if set_cookies:
         cookie_list = set_cookies[0][1].split(b';')
         for directive in cookie_list:
@@ -85,10 +87,17 @@ def index(self, received_data: bytes):
             directive_name = directive_name.strip()
             if directive_name == b'user':
                 user_token: bytes = directive_content.strip()
+                auth_token = user_token
                 authenticated_user = is_authenticated(db, cursor, user_token)
             if authenticated_user:
                 template_dict['user'] = str(authenticated_user)
+    if authenticated_user:
+        authenticated_users[authenticated_user] = auth_token
 
+    auth_users = []
+    for auth_user in authenticated_users.keys():
+        auth_users.append({'logged_in_user': auth_user})
+    template_dict['loop_data'] = auth_users
     body = render_template(file_path['index.html'], template_dict).encode()
     # with open(file_path['index.html'], 'rb') as content:
     #     body = content.read()
@@ -142,9 +151,9 @@ def signup(tcp_handler):
 
 
 def websocket(self, received_data):
+    print('\r\n--------- Started websocket upgrade -------------\r\n')
     path, headers, content = parse_request(received_data)
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))
-
     authenticated = ''
     if set_cookies:
         header_content_list = set_cookies[0][1].split(b';')
@@ -159,24 +168,27 @@ def websocket(self, received_data):
                 user_token: bytes = directive_content.strip()
                 print('Checking token: ' + str(user_token))
                 authenticated = is_authenticated(db, db.cursor, user_token)  # Check query token with hash
-    # authenticated is the username
+    # Only authenticated users get upgraded to a websocket connection.
     # if authenticated:
+    sys.stdout.flush()
+    sys.stderr.flush()
     ws_users[authenticated] = self
-    username = "User" + str(random.randint(0, 1000))
-    print('User: ' + username + ' has opened a websocket connection')
     key = received_data.split(b'Sec-WebSocket-Key: ')[1]
     key = key.split(b'\r\n')[0]
-    key += (b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+    key += b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     return_key = hashlib.sha1(key).digest()
     return_key = base64.b64encode(return_key)
     send_101(self, return_key)
+    print('sent request')
     self.handle_websocket(authenticated)
     # else:
+    #     print("\r\nUpgrade request has been rejected\r\n")
     #     send_301(self, '/')
 
 
 def chat(self, received_data):
     # Returns list of comments stored in the database
+    print('\r\n------------- /chat-history ------------\r\n')
     chat_array = retrieve_chathistory(cursor, db)
     print(f"\r\nCurrent chat history are {chat_array}\r\n")
     json_array = json.dumps(chat_array)

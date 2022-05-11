@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body onload="setup();">
+<body onload="setup(); welcome();">
     <div class="sidebar open">
         <div class="logo-details">
             <i class='bx bxl-c-plus-plus icon'></i>
@@ -62,6 +62,7 @@
         <h2>Welcome {{user}}!</h2>
         
         <script src="../Chess/ChessEngine.js"></script>
+        <script src="functions.js"></script>
 
 
         <canvas id="chess_canvas" width="1000" height="1000" style="border:1px solid #d3d3d3;">
@@ -71,11 +72,19 @@
         <p id="paragraph">
             This text is from the HTML file 🙂
         </p>
+        <!-- TODO - remove this when done testing -->
+        <h6>Logged in users are: </h6>
+        <ul>
+        {{loop}}
+            <li>{{logged_in_user}}</li>
+        {{end_loop}}
+        </ul>
+        <br>
                 
         
-        <!-- <label for="chat-comment">Chat: </label>
+        <label for="chat-comment">Chat: </label>
         <input id="chat-comment" type="text" name="comment">
-        
+
         <button onclick="sendMessage()">Send</button>
 
 
@@ -91,7 +100,7 @@
 
         <video id="myVideo" autoplay muted></video>
         <br />
-        <video id="otherVideo" autoplay></video> -->
+        <video id="otherVideo" autoplay></video>
 
 
     </section>

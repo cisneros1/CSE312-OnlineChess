@@ -37,27 +37,52 @@ for database in databases:
     print(database)
 
 
-def is_authenticated(db, cursor, token: bytes):
-    query = 'SELECT username, auth_token FROM registered_users'
+# for debugging purposes
+def retrieve_authenticated_users():
+    query = 'SELECT * FROM registered_users'
     cursor.execute(query)
-    rows = cursor.fetchall()
-    print(f'authenticating random token = {token}')
-    for row in rows:
-        username = row[0]
-        hashed_token = row[1]
-        if hashed_token is None:
-            continue
-        if bcrypt.checkpw(token, hashed_token):
-            return username
+    return cursor.fetchall()
 
+
+def is_authenticated(db, cursor, token: bytes):
+    # print(f'authenticating random token = {token}')
+    # all_reg_users = retrieve_authenticated_users()
+    # print(f'All users are {all_reg_users}')
+    try:
+        # query = 'SELECT username, auth_token FROM registered_users' # this query doesn't work as expected :(
+        query = 'SELECT * FROM registered_users'
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    except Exception as e:
+        print(f'Attempted to authenticate token = {token}. Got error {e}')
+        return ''
+    try:
+        print(f'all authenticated rows with token set are {rows}')
+        for row in rows:
+            username = row[0]
+            hashed_token = row[2]
+            print(f'checking user = {username} and stored token = {hashed_token}')
+            if hashed_token is None:
+                continue
+            if bcrypt.checkpw(token, hashed_token):
+                print(f'Found a match with user {username}')
+                return username
+    except Exception as e:
+        print(f'2. Attempted to authenticate token = {token}. Got error {e}')
+        return ''
+    print(f'is_authenticated = false on token = {token}')
     return ''
 
 
-def post_token(db, cursor, username, token):
-    query = "UPDATE registered_users SET auth_token = %s WHERE username = %s"
-    values = (token, username)
-    cursor.execute(query, values)
-    db.commit()
+def post_token(db, cursor, username: str, token: bytes):
+    try:
+        query = "UPDATE registered_users SET auth_token = %s WHERE username = %s"
+        values = (token, username)
+        print(f"Setting values = {values} for username = {username}")
+        cursor.execute(query, values)
+        db.commit()
+    except Exception as e:
+        print(f"Attempted to update token on username = {username}")
 
 
 def authenticate_login(db, cursor, username: str, password: bytes, token: bytes):
@@ -67,7 +92,7 @@ def authenticate_login(db, cursor, username: str, password: bytes, token: bytes)
         cursor.execute(query, values)
         row = cursor.fetchone()
         if row:
-            stored_password = row[0]
+            stored_password: bytes = row[0]
             if bcrypt.checkpw(password, stored_password):
                 post_token(db, cursor, username, token)
                 return True
@@ -96,11 +121,14 @@ def register_user(db, cursor, username: str, password: bytes):
         db.commit()
 
     else:
-        print(f"Insert a new user. username = {username} and pass = {password}")
-        query = "INSERT INTO registered_users (username, password) VALUES (%s, %s)"
-        values = (username, password)
-        cursor.execute(query, values)
-        db.commit()
+        try:
+            print(f"Insert a new user. username = {username} and pass = {password}")
+            query = "INSERT INTO registered_users (username, password, auth_token) VALUES (%s, %s, %s)"
+            values = (username, password, b'')
+            cursor.execute(query, values)
+            db.commit()
+        except Exception as e:
+            print(f"Attempted to insert a user. Got error {e}")
 
 
 # Add a user to the users table

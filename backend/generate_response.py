@@ -4,7 +4,7 @@ def send_101(self, b64):
     response += b'\r\nUpgrade: websocket'
     response += b'\r\nSec-WebSocket-Accept: ' + b64 + b'\r\n'
     response += b'X-Content-Type-Options: nosniff\r\n\r\n'
-    # print('Full response to be sent is: ' + str(response))
+    print('Full response to be sent is: ' + str(response))
     self.request.sendall(response)
 
 
@@ -78,6 +78,14 @@ def send_301(self, new_location):
     response = b"HTTP/1.1 301 Moved Permanently"
     response += b"\r\nContent-Length: 0"
     response += b"\r\nLocation: " + new_location.encode()
+    self.request.sendall(response)
+
+
+def send_301_with_token(self, new_location, token):
+    response = b"HTTP/1.1 301 Moved Permanently"
+    response += b"\r\nContent-Length: 0"
+    response += b"\r\nLocation: " + new_location.encode()
+    response += b"\r\nSet-Cookie: user= " + str(token).encode() + b"; HttpOnly; Max-Age=3600"
     self.request.sendall(response)
 
 
