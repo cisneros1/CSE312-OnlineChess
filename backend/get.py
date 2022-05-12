@@ -21,8 +21,6 @@ ws_users = {}
 
 
 # DEAL WITH ONLY GET REQUESTS
-
-
 def handle_get(self, received_data):
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
     # print("path is: " + str(path))

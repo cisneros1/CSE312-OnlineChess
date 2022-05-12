@@ -46,17 +46,58 @@ function addMessage(chatMessage) {
     console.log('The Chat Message to be added is below');
     console.log(chatMessage);
     let chat = document.getElementById('chat');
-    // path = /game_user_1_user2
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
-// Render online users in html
+// Render a single users
 function addUser(user) {
-    console.log('Adding a new user to html');
-    console.log(user);
-    let box = document.getElementById('onlineUsers');
+    // TODO - Handle html escaping?
+    // user is the other user being templated
+    if (user === username || username === ''){
+        return;
+    }
+    console.log(`Adding ${user} to html`);
 
-    box.innerHTML += "<b>" + user + "</b>: </br>";
+    let box = document.getElementById('onlineUsers');
+    // let chat_box = document.getElementById('chat');
+    // path = /challenge_user_1_user2
+    // const form = document.createElement("form");
+    // form.method = "POST";
+    // form.action = `/challenge_${username}_${user}`;
+
+
+    // div for one user
+    const user_div = document.createElement("div");
+    user_div.id = `div_${user}`;
+    // chat box for a user. format is:
+    // <label for="chat-comment">Chat: </label>
+    // <input id="chat-comment" type="text" name="comment">
+    // <button onclick="sendMessage()">Send</button>
+    const label = document.createElement("label");
+    label.for = `${user}_chat`;
+    label.innerText = 'Chat :';
+    user_div.innerHTML += label;
+
+    const chat_box = document.createElement("input");
+    chat_box.type = "text";
+    chat_box.id = `${user}_chat`;
+    chat_box.name = "message";
+    user_div.innerHTML += chat_box;
+
+    const send_button = document.createElement("button");
+    send_button.onclick = function () {
+        sendDM(user);
+    };
+    send_button.innerText = "Direct Message";
+    user_div.innerHTML += send_button;
+
+    box.innerHTML += user_div;
+}
+
+function sendDM(user) {
+    const request = new XMLHttpRequest();
+    request.open("POST", `/send_dm_${user}`)
+    request.send();
 }
 
 function get_online_users() {

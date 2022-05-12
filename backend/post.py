@@ -6,7 +6,7 @@ import bcrypt
 from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
-from stored_users import authenticated_users
+from stored_users import *
 
 
 def handle_post(tcp_handler, received_data):
@@ -22,9 +22,27 @@ def handle_post(tcp_handler, received_data):
         signup(tcp_handler, received_data)
     elif 'chat' in str(path):
         chat(tcp_handler, received_data)
+
+    elif str(path).startswith('/challenge'):
+        challenge(tcp_handler, received_data, path)
+
     else:
         print('Unrecognized Post Request, sending 404')
         send_404(tcp_handler)
+
+
+def challenge(self, received_data: bytes, path: str):
+    file_path = file_paths(self)
+    # parse the entire path first
+    challenger = path.split('_')[1].split('_')[0]
+    acceptor = path.split('_')[1].split('_')[1]
+    print(f'Challenger: {challenger}, Acceptor: {acceptor}')
+
+    with open(file_path['game.html', 'rb']) as content:
+        body = content.read()
+    length = len(body)
+    mimetype = 'text/html; charset=utf-8'
+    send_200(self, length, mimetype, body)
 
 
 # This function is not called
@@ -59,6 +77,7 @@ def chat(tcp_handler, received_data: bytes):
         print('404 in chat')
         send_404(tcp_handler)
 
+
 # /login
 def login(tcp_handler, received_data: bytes):
     print('----------- post login --------------')
@@ -66,7 +85,7 @@ def login(tcp_handler, received_data: bytes):
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     color = received_data.split(b'name="color"\r\n\r\n')[1].split(b'\r\n')[0].decode()
-    
+
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
@@ -84,14 +103,13 @@ def login(tcp_handler, received_data: bytes):
         authenticated_users[username] = auth_token  # Save user to global hashmap of users
         # print(f'Authenticated users are {authenticated_users}')
         tcp_handler.usernames.append(username)
-        
+
         if color != '#ffffff':
             change_color(db, cursor, username, color)
-        
-        
+
         new_token = secrets.token_urlsafe(32)
         tcp_handler.valid_tokens.append(new_token)
-    
+
         # TODO - find a way to handle disconnects
         auth_users = []
         for auth_user in authenticated_users.keys():
@@ -134,7 +152,7 @@ def signup(tcp_handler, received_data):
         if username and password:
             hashed_password: bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
             print(f'HASED_PWD: {hashed_password}')
-            
+
             register_user(db, cursor, username, hashed_password)
 
         send_301(tcp_handler, 'http://localhost:8080/signin')
