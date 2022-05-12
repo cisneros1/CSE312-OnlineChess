@@ -97,11 +97,12 @@ function addUser(user) {
 
     const send_button = document.createElement("button");
     // send_button.onclick
-    send_button.onclick = function () {
-        console.log('Test 1');
-        sendDM(user);
-    };
+    // send_button.onclick = function () {
+    //     console.log('Test 1');
+    //     sendDM(user);
+    // };
     send_button.innerText = "Direct Message";
+    send_button.setAttribute('onclick', `sendDM('${user}')`);
     user_div.innerHTML += send_button.outerHTML;
     console.log('HTML element: ' + user_div.outerHTML);
 
@@ -111,8 +112,19 @@ function addUser(user) {
 function sendDM(user) {
     console.log(`Calling sendDM on ${user}`);
     const request = new XMLHttpRequest();
-    request.open("POST", `/send_dm_${user}`)
-    request.send();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            console.log('sendDM is now ready');
+        }
+    };
+    let chat_box = document.getElementById(`${user}_chat`)
+    let direct_message = chat_box.value;
+    chat_box.value = '';
+
+    socket.send(JSON.stringify({'messageType': 'DirectMessage', 'comment': direct_message, 'sender': username, 'receiver': user}));
+
+    // request.open("GET", `/send_dm_${username}_${user}_${direct_message}`)
+    // request.send();
 }
 
 function get_online_users() {
@@ -120,8 +132,8 @@ function get_online_users() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
-            console.log('The below response is about to be parsed')
-            console.log(this.response)
+            console.log('The below response is about to be parsed');
+            console.log(this.response);
             const users = JSON.parse(this.response);
             for (const user of users) {
                 console.log(user);

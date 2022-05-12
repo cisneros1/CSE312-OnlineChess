@@ -102,6 +102,23 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
 
+                elif message_type == 'DirectMessage':
+                    sender = message['sender']
+                    receiver = message['receiver']
+                    message = f'Received DM from {sender}: {message["comment"]}'
+
+                    response = {'messageType': 'chatMessage', 'username': username,
+                                'comment': escape_html(message)}
+                    response = json.dumps(response)
+
+                    send_opcode = 129
+                    response_frame = build_frame(response, send_opcode)
+
+                    receiver_connection = web_socket_connections.get(receiver)
+                    if receiver_connection:
+                        receiver_connection.request.sendall(response_frame)
+                    else:
+                        print("\r\nRecipient was disconnected.")
 
                 elif message_type == 'Challenge':
                     pass

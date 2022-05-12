@@ -22,8 +22,9 @@ ws_users = {}
 
 # DEAL WITH ONLY GET REQUESTS
 def handle_get(self, received_data):
-    path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
+    path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode().strip()
     # print("path is: " + str(path))
+    print(f"Got a got request for {path}")
 
     if path == '/':
         index(self, received_data)
@@ -41,23 +42,23 @@ def handle_get(self, received_data):
     elif path == '/signup':
         signup(self)
 
-
     elif path == '/websocket':
         websocket(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
-    
+
     elif path == '/online-users':
         showUsers(self, received_data)
-
-
 
     elif path == '/functions.js':
         javascript(self)
 
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
+
+    # elif path.startswith('/send_dm'):
+    #     direct_message(self, received_data, path)
 
 
     elif '.css' in path:
@@ -71,6 +72,19 @@ def handle_get(self, received_data):
         favicon(self, path)
     else:
         print('Unrecognized Request, sending 404')
+
+
+# def direct_message(tcp_handler, received_data: bytes, path: str):
+#     split_paths = path.split('_')
+#     sender = split_paths[2].strip()
+#     receiver = split_paths[3].strip()
+#
+#     receiver_connection = web_socket_connections[receiver]
+#     response = {'messageType': 'chatMessage',
+#                 'comment': escape_html('placerholder')}
+#     receiver_connection.request.sendall()
+#     print(f'\r\nUser receiving dm from {sender} to receiver {receiver}')
+#     send_200(tcp_handler, 0, 'application/json', b'')
 
 
 def index(self, received_data: bytes):
@@ -151,6 +165,7 @@ def signup(tcp_handler):
 
     send_200(tcp_handler, length, mimetype, body)
 
+
 # --------------------------------------------------------- WEBSOCKET
 def websocket(self, received_data):
     print('\r\n--------- Started websocket upgrade -------------\r\n')
@@ -196,15 +211,17 @@ def chat(self, received_data):
     json_array = json.dumps(chat_array)
     send_200(self, len(json_array), 'application/json', json_array.encode())
 
+
 def showUsers(self, received_data):
     print(f'Websocket Connections:  {authenticated_users}')
-    
-    users = [] # This will be a list of json
+
+    users = []  # This will be a list of json
     for user in authenticated_users.keys():
         users.append(user)
     json_array = json.dumps(users)
     print(f'return jsonlist: {json_array}')
-    send_200(self, len(json_array), 'application/json',json_array.encode())
+    send_200(self, len(json_array), 'application/json', json_array.encode())
+
 
 # --------------------------------------------------------- WEBSOCKET END
 
@@ -263,12 +280,12 @@ def image(self, path):
         filename = '/root' + complete_path
     elif complete_path.startswith('/image/'):
         filename = str(folder_path["imagefolder"]) + path
-    len = str(os.path.getsize(filename))
+    length = str(os.path.getsize(filename))
 
     with open(filename, 'rb') as content:
         body = content.read()
 
-    send_200(self, len, mimetype, body)
+    send_200(self, length, mimetype, body)
 
 
 def favicon(self, path):

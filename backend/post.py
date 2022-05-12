@@ -11,7 +11,7 @@ from stored_users import *
 
 def handle_post(tcp_handler, received_data):
     print('POST DATA: ' + str(received_data))
-    path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
+    path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode().strip()
     print('POST Request for: ' + str(path))
 
     if 'login' in str(path):
@@ -24,8 +24,8 @@ def handle_post(tcp_handler, received_data):
     elif 'chat' in str(path):
         chat(tcp_handler, received_data)
 
-    elif 'send_dm' in str(path):
-        dm(tcp_handler, received_data, str(path))
+    # elif path.startswith('/send_dm'):
+    #     direct_message(tcp_handler, received_data, path)
 
     elif 'challenge' in str(path):
         challenge(tcp_handler, received_data, path)
@@ -35,7 +35,7 @@ def handle_post(tcp_handler, received_data):
         send_404(tcp_handler)
 
 
-def dm(tcp_handler, received_data: bytes, path: str):
+def direct_message(tcp_handler, received_data: bytes, path: str):
     username = path.split('_')[1].split('_')[1]
     print(f'User receiving dm from {username}')
 
