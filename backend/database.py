@@ -20,7 +20,6 @@ cursor = db.cursor(prepared=True)
 # This table is for chat history
 cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                     username TEXT,
-                    color TEXT,
                     json_message TEXT,
                     id INT AUTO_INCREMENT PRIMARY KEY)
                     """)
@@ -104,27 +103,26 @@ def post_token(db, cursor, username: str, token: bytes):
 
 
 def change_color(db, cursor, username: str, color: str):
-    select_query = "SELECT * FROM registered_users WHERE username = (%s)"
+    select_query = "SELECT * FROM registered_users WHERE username = %s"
     values = (username,)
     cursor.execute(select_query, values)
     is_present = len(cursor.fetchall())
     if is_present:
         print(f"Updating user info. is_present = {is_present}")
         query = "UPDATE registered_users SET color = %s WHERE username = %s"
-        values = (username, color)
+        values = (color, username)
         cursor.execute(query, values)
         db.commit()
+        
 
 def get_color(db, cursor, username):
-    # TODO: Fix this so it actually changes from #0000ff
-    color = "#0000ff"
-    query = "SELECT * FROM users"
+    color = ""
+    query = "SELECT color FROM registered_users WHERE username = %s"
+    values = (username,)
     cursor.execute(query)
     all_users = cursor.fetchall()
     for a_user in all_users:
-        user_name = a_user[0]
-        if user_name == username:
-            color = a_user[1]
+        return a_user[0]
     return color
 
 
