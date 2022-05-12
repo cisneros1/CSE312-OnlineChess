@@ -90,19 +90,19 @@ def chat(tcp_handler, received_data: bytes):
 # /login
 def login(tcp_handler, received_data: bytes):
     print('----------- post login --------------')
-    token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    # token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].strip()
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     color = received_data.split(b'name="color"\r\n\r\n')[1].split(b'\r\n')[0].decode()
 
-    print('Token: ' + token)
+    # print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
     print(f'Color: {color}')
 
     auth_token: str = secrets.token_hex(nbytes=80)
-    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), (bcrypt.gensalt()))
-    user_found: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
+    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode('utf8'), (bcrypt.gensalt()))
+    user_found: bool = authenticate_login(db, cursor, username, password.encode('utf8'), auth_token_hashed)
 
     if not user_found:
         print('That user does not exist')

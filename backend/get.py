@@ -88,6 +88,7 @@ def handle_get(self, received_data):
 
 
 def index(self, received_data: bytes):
+    print('\r\n------------- index -------------\r\n')
     file_path = file_paths(self)
     path, headers, content = parse_request(received_data)
     template_dict = {'user': 'guest', 'loop_data': []}  # this will be fed into the template engine
@@ -107,13 +108,13 @@ def index(self, received_data: bytes):
                 auth_token = user_token
                 authenticated_user = is_authenticated(db, cursor, user_token)
             if authenticated_user:
-                template_dict['user'] = str(authenticated_user)
+                template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
         authenticated_users[authenticated_user] = auth_token
 
     auth_users = []
     for auth_user in authenticated_users.keys():
-        auth_users.append({'logged_in_user': auth_user})
+        auth_users.append({'logged_in_user': escape_html(auth_user)})
     template_dict['loop_data'] = auth_users
     body = render_template(file_path['index.html'], template_dict).encode()
     body = (body.decode().replace("'{{background_color}}'", get_color(db, cursor, authenticated_user))).encode()
@@ -184,7 +185,7 @@ def websocket(self, received_data):
             elif directive_name == b'user':
                 user_token: bytes = directive_content.strip()
                 print('Checking token: ' + str(user_token))
-                authenticated = is_authenticated(db, db.cursor, user_token)  # Check query token with hash
+                authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
     # Only authenticated users get upgraded to a websocket connection.
     # if authenticated:
     sys.stdout.flush()

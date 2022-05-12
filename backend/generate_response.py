@@ -84,8 +84,8 @@ def send_301(self, new_location):
 def send_301_with_token(self, new_location, token):
     response = b"HTTP/1.1 301 Moved Permanently"
     response += b"\r\nContent-Length: 0"
-    response += b"\r\nLocation: " + new_location.encode()
-    response += b"\r\nSet-Cookie: user= " + str(token).encode() + b"; HttpOnly; Max-Age=3600"
+    response += b"\r\nLocation: " + new_location.encode('utf8')
+    response += b"\r\nSet-Cookie: user= " + token.encode('utf8') + b"; HttpOnly; Max-Age=3600"
     self.request.sendall(response)
 
 
