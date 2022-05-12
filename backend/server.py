@@ -84,15 +84,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
                         
-                # TODO: Finish handler
-                elif message_type == 'imageMessage':
-                    print('Handling image only msg typ')
-                    
-                # TODO: Finish handler
-                elif message_type == 'chatImageMessage':
-                    print('Handling chat and image  msg types')
-
-
                 elif message_type == 'chessMessage':
                     pass
             sys.stdout.flush()
