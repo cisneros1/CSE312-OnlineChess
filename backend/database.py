@@ -116,7 +116,8 @@ def change_color(db, cursor, username: str, color: str):
         db.commit()
 
 def get_color(db, cursor, username):
-    color = "#ffffff"
+    # TODO: Fix this so it actually changes from #0000ff
+    color = "#0000ff"
     query = "SELECT * FROM users"
     cursor.execute(query)
     all_users = cursor.fetchall()

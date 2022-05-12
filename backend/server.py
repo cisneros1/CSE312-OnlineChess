@@ -40,17 +40,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         while not registered:
             pass
 
-        # username = ""
-        # ws_users = []
-        # ws_conn = []
-        # for usertxt in self.usernames:
-        #     if len(usertxt) != 0:
-        #         username = usertxt
-        #         if username not in ws_users:
-        #             ws_users.append(username)
-        #             ws_conn.append(self)
-        # print('usernmae: ' + str(username))
-
         while True:
             data = self.request.recv(1024)
             # print(str(data))

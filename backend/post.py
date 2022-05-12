@@ -85,7 +85,7 @@ def login(tcp_handler, received_data: bytes):
         # print(f'Authenticated users are {authenticated_users}')
         tcp_handler.usernames.append(username)
         
-        if color != '#ffffff' or color != get_color(db, cursor, username):
+        if color != '#ffffff':
             change_color(db, cursor, username, color)
         
         
