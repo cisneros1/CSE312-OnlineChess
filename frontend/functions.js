@@ -28,6 +28,7 @@ function addMessage(chatMessage) {
     console.log('The Chat Message to be added is below')
     console.log(chatMessage)
     let chat = document.getElementById('chat');
+    // path = /game_user_1_user2
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
