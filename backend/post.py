@@ -16,19 +16,28 @@ def handle_post(tcp_handler, received_data):
 
     if 'login' in str(path):
         login(tcp_handler, received_data)
+
     elif path == '/signup_log':
-        print('ENTERING REDIRECT .......')
         print(str(received_data))
         signup(tcp_handler, received_data)
+
     elif 'chat' in str(path):
         chat(tcp_handler, received_data)
 
-    elif str(path).startswith('/challenge'):
+    elif 'send_dm' in str(path):
+        dm(tcp_handler, received_data, str(path))
+
+    elif 'challenge' in str(path):
         challenge(tcp_handler, received_data, path)
 
     else:
         print('Unrecognized Post Request, sending 404')
         send_404(tcp_handler)
+
+
+def dm(tcp_handler, received_data: bytes, path: str):
+    username = path.split('_')[1].split('_')[1]
+    print(f'User receiving dm from {username}')
 
 
 def challenge(self, received_data: bytes, path: str):

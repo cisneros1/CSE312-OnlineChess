@@ -52,11 +52,12 @@ function addMessage(chatMessage) {
 // Render a single users
 function addUser(user) {
     // TODO - Handle html escaping?
+    console.log(`Adding ${user} to html`);
     // user is the other user being templated
     if (user === username || username === ''){
         return;
     }
-    console.log(`Adding ${user} to html`);
+
 
     let box = document.getElementById('onlineUsers');
     // let chat_box = document.getElementById('chat');
@@ -75,23 +76,28 @@ function addUser(user) {
     // <button onclick="sendMessage()">Send</button>
     const label = document.createElement("label");
     label.for = `${user}_chat`;
-    label.innerText = 'Chat :';
-    user_div.innerHTML += label;
+    label.innerText = 'Chat :'
+    user_div.appendChild(label);
+    // user_div.innerHTML += label;
+    // user_div.appendChild(label);
 
     const chat_box = document.createElement("input");
     chat_box.type = "text";
     chat_box.id = `${user}_chat`;
     chat_box.name = "message";
-    user_div.innerHTML += chat_box;
+    // user_div.innerHTML += chat_box;
+    user_div.appendChild(chat_box);
 
     const send_button = document.createElement("button");
     send_button.onclick = function () {
         sendDM(user);
     };
     send_button.innerText = "Direct Message";
-    user_div.innerHTML += send_button;
+    // user_div.innerHTML += send_button;
+    user_div.appendChild(send_button);
+    // console.log()
 
-    box.innerHTML += user_div;
+    box.appendChild(user_div);
 }
 
 function sendDM(user) {
