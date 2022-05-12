@@ -104,7 +104,7 @@ def index(self, received_data: bytes):
         auth_users.append({'logged_in_user': auth_user})
     template_dict['loop_data'] = auth_users
     body = render_template(file_path['index.html'], template_dict).encode()
-    body = (body.decode().replace("'{{background_color}}'", get_color(db, cursor, is_authenticated))).encode()
+    body = (body.decode().replace("'{{background_color}}'", get_color(db, cursor, authenticated_user))).encode()
     length = len(body)
     mimetype = 'text/html; charset=utf-8'
 

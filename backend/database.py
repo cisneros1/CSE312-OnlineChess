@@ -119,7 +119,7 @@ def get_color(db, cursor, username):
     color = ""
     query = "SELECT color FROM registered_users WHERE username = %s"
     values = (username,)
-    cursor.execute(query)
+    cursor.execute(query, values)
     all_users = cursor.fetchall()
     for a_user in all_users:
         return a_user[0]
