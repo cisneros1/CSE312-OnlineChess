@@ -16,17 +16,35 @@ document.addEventListener("keypress", function (event) {
 function sendMessage() {
     const chatBox = document.getElementById("chat-comment");
     const comment = chatBox.value;
+
+    const image_file = document.getElementById("form-file");
+    const file = image_file.value;
+
     chatBox.value = "";
+
+
     chatBox.focus();
-    if (comment !== "") {
+    if (comment !== "" && !file.includes(".jpg")) {
+        // TODO: Handle images and text from user uploads
+        console.log('Sending a Normal Message');
+        console.log(comment)
         socket.send(JSON.stringify({'messageType': 'chatMessage', 'comment': comment}));
+    } else if (comment === "" && file.includes(".jpg")) {
+        console.log('Sending Image only');
+        console.log(file);
+        socket.send(JSON.stringify({ 'messageType': 'imageMessage', 'comment': comment }));
+    } else {
+        console.log('Sending text and image in message');
+        console.log(comment)
+        console.log(file);
+        socket.send(JSON.stringify({ 'messageType': 'chatImageMessage', 'comment': comment }));
     }
 }
 
 // Renders a new chat message to the page
 function addMessage(chatMessage) {
-    console.log('The Chat Message to be added is below')
-    console.log(chatMessage)
+    console.log('The Chat Message to be added is below');
+    console.log(chatMessage);
     let chat = document.getElementById('chat');
     // path = /game_user_1_user2
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
@@ -34,8 +52,8 @@ function addMessage(chatMessage) {
 
 // Render online users in html
 function addUser(user) {
-    console.log('Adding a new user to html')
-    console.log(user)
+    console.log('Adding a new user to html');
+    console.log(user);
     let box = document.getElementById('onlineUsers');
 
     box.innerHTML += "<b>" + user + "</b>: </br>";

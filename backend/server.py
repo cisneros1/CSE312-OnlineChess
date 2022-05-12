@@ -20,6 +20,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         inDocker = True
 
     usernames = []
+
+    colors = []
     xsrf_token = {}
     valid_tokens = []  # The same for each user
 
@@ -99,6 +101,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response_frame = build_frame(response, send_opcode)
                     for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
+
 
                 elif message_type == 'Challenge':
                     pass

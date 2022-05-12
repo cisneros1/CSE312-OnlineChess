@@ -6,6 +6,7 @@ import bcrypt
 # This retrieves the environment variable from the docker compose file
 user = os.getenv('DATABASE_USER')  # This is set to 'Felipe' in the docker compose file for now
 password = os.getenv('DATABASE_PASSWORD')  # 'Gallardo'
+
 # This connects us to the mysql container database
 db = mysql.connect(
     host='mysql',
@@ -26,6 +27,7 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS users (
 cursor.execute("""CREATE TABLE IF NOT EXISTS registered_users (
                     username TEXT,
                     password BLOB,
+                    color TEXT,
                     auth_token BLOB,
                     id INT AUTO_INCREMENT PRIMARY KEY)
                     """)
@@ -60,8 +62,10 @@ def is_authenticated(db, cursor, token: bytes):
         print(f'all authenticated rows with token set are {rows}')
         for row in rows:
             username = row[0]
-            hashed_token = row[2]
+            color = row[1]
+            hashed_token = row[3]
             
+            print(f'Background Color: {color}')
             if (isinstance(hashed_token, bytes) or isinstance(hashed_token, bytearray)):
                 print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
@@ -96,6 +100,32 @@ def post_token(db, cursor, username: str, token: bytes):
         db.commit()
     except Exception as e:
         print(f"Attempted to update token on username = {username}")
+
+
+def change_color(db, cursor, username: str, color: str):
+    select_query = "SELECT * FROM registered_users WHERE username = %s"
+    values = (username,)
+    cursor.execute(select_query, values)
+    is_present = len(cursor.fetchall())
+    if is_present:
+        print(f"Updating user info. is_present = {is_present}")
+        query = "UPDATE registered_users SET color = %s WHERE username = %s"
+        values = (color, username)
+        cursor.execute(query, values)
+        db.commit()
+        
+
+def get_color(db, cursor, username):
+    color = ""
+    query = "SELECT color FROM registered_users WHERE username = %s"
+    values = (username,)
+    cursor.execute(query, values)
+    all_users = cursor.fetchall()
+    for a_user in all_users:
+        return a_user[0]
+    return color
+
+
 
 
 def authenticate_login(db, cursor, username: str, password, token):
@@ -150,8 +180,8 @@ def register_user(db, cursor, username: str, password: bytes):
     else:
         try:
             print(f"Insert a new user. username = {username} and pass = {password}")
-            query = "INSERT INTO registered_users (username, password, auth_token) VALUES (%s, %s, %s)"
-            values = (username, password, b'')
+            query = "INSERT INTO registered_users (username, password, color, auth_token) VALUES (%s, %s, %s, %s)"
+            values = (username, password, "white", b'')
             cursor.execute(query, values)
             db.commit()
         except Exception as e:
@@ -176,9 +206,11 @@ def retrieve_users(cursor, db):
     for a_user in all_users:
         # message_type = user[0]
         user_name = a_user[0]
-        user_message = a_user[1]
-        user_id = a_user[2]
-        user_array.append((user_name, user_message, user_id))
+        color = a_user[1]
+        user_message = a_user[2]
+        user_id = a_user[3]
+        print(f'Retrieving user {a_user} with color: {color}')
+        user_array.append((user_name, user_message, color, user_id))
     return user_array
 
 

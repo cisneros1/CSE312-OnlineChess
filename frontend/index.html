@@ -25,7 +25,7 @@
            </div>
         </ul>
     </div>
-    <section class="home-section">
+    <section class="home-section" style="background-color: '{{background_color}}'">
 
         <div id="login_button">
             <a href="signin">Login</a>
@@ -61,18 +61,30 @@
         <label for="chat-comment">Chat: </label>
         <input id="chat-comment" type="text" name="comment">
 
+
         <button onclick="sendMessage()">Send</button>
+        <Br />
 
-
-
+        <label for="form-file">Image: </label>
+        <input id="form-file" type="file" name="upload">
+        <!-- <input type="submit" value="Post"> -->
 
         <div id="chat"></div>
+
+
+
+
+
 
         <br />
         <button onclick="startVideo()">Start My Video</button>
         <br />
         <button onclick="connectWebRTC()">Start Video Chat</button>
         <br />
+
+
+
+
 
         <video id="myVideo" autoplay muted></video>
         <br />
