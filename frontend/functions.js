@@ -4,7 +4,6 @@ let webRTCConnection;
 let token = "";
 
 
-
 // Allow users to send messages by pressing enter instead of clicking the Send button
 document.addEventListener("keypress", function (event) {
     if (event.code === "Enter") {
@@ -19,7 +18,7 @@ function sendMessage() {
     chatBox.value = "";
     chatBox.focus();
     if (comment !== "") {
-        socket.send(JSON.stringify({ 'messageType': 'chatMessage', 'comment': comment }));
+        socket.send(JSON.stringify({'messageType': 'chatMessage', 'comment': comment}));
     }
 }
 
@@ -36,7 +35,8 @@ function addUser(user) {
     console.log('Adding a new user to html')
     console.log(user)
     let box = document.getElementById('onlineUsers');
-    box.innerHTML += "<b>" + user + "</b>: ";
+
+    box.innerHTML += "<b>" + user + "</b>: </br>";
 }
 
 function get_online_users() {
@@ -56,8 +56,6 @@ function get_online_users() {
     request.open("GET", "/online-users");
     request.send();
 }
-
-
 
 
 // called when the page loads to get the chat_history
@@ -93,7 +91,7 @@ socket.onmessage = function (ws_message) {
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
             webRTCConnection.createAnswer().then(answer => {
                 webRTCConnection.setLocalDescription(answer);
-                socket.send(JSON.stringify({ "messageType": "webRTC-answer", "answer": answer }));
+                socket.send(JSON.stringify({"messageType": "webRTC-answer", "answer": answer}));
             });
             break;
         case 'webRTC-answer':
@@ -107,15 +105,22 @@ socket.onmessage = function (ws_message) {
     }
 }
 
+socket.onclose = function (event) {
+    console.log("Websocket connection closed")
+    const request = new XMLHttpRequest();
+    request.open("GET", "/close_websocket");
+    request.send();
+};
+
 function startVideo() {
-    const constraints = { video: true, audio: true };
+    const constraints = {video: true, audio: true};
     navigator.mediaDevices.getUserMedia(constraints).then((myStream) => {
         const elem = document.getElementById("myVideo");
         elem.srcObject = myStream;
 
         // Use Google's public STUN server
         const iceConfig = {
-            'iceServers': [{ 'url': 'stun:stun2.1.google.com:19302' }]
+            'iceServers': [{'url': 'stun:stun2.1.google.com:19302'}]
         };
 
         // create a WebRTC connection object
@@ -134,7 +139,7 @@ function startVideo() {
         webRTCConnection.onicecandidate = function (data) {
             console.log(data);
             console.log('Sending ice candidate')
-            socket.send(JSON.stringify({ 'messageType': 'webRTC-candidate', 'candidate': data.candidate }));
+            socket.send(JSON.stringify({'messageType': 'webRTC-candidate', 'candidate': data.candidate}));
         };
     })
 }
@@ -144,7 +149,7 @@ function connectWebRTC() {
     // create and send an offer
     webRTCConnection.createOffer().then(webRTCOffer => {
         console.log('Creating Candidate Offer to Send')
-        socket.send(JSON.stringify({ 'messageType': 'webRTC-offer', 'offer': webRTCOffer }));
+        socket.send(JSON.stringify({'messageType': 'webRTC-offer', 'offer': webRTCOffer}));
         webRTCConnection.setLocalDescription(webRTCOffer);
     });
 
@@ -167,4 +172,5 @@ function redirect() {
     xmlHttpReq.send(null);
     return xmlHttpReq.responseText;
 }
+
 // console.log(httpGet('https://jsonplaceholder.typicode.com/posts'));
