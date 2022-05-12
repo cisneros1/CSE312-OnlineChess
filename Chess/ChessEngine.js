@@ -1,4 +1,9 @@
-// const socket = new WebSocket('ws://' + window.location.host + '/websocket');
+// let socket = null;
+// let game_state = null;
+
+// socket.onmessage = function () {
+//
+// }
 
 
 class Piece {
@@ -571,6 +576,13 @@ function clearAll(context) {
     let canvas_height = canvas.height;
     context.clearRect(0, 0, canvas_width, canvas_height);
 }
+
+
+// function startGame() {
+//     console.log("Started a game.")
+//     socket = new WebSocket('ws://' + window.location.host + '/connect_socket');
+//     game_started = true;
+// }
 
 function setup() {
     console.log("Called setup()");

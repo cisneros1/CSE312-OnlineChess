@@ -45,6 +45,9 @@ def handle_get(self, received_data):
     elif path == '/websocket':
         websocket(self, received_data)
 
+    elif path == '/connect_socket':
+        pass
+
     elif path == '/chat-history':
         chat(self, received_data)
 
@@ -57,8 +60,9 @@ def handle_get(self, received_data):
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
 
-    # elif path.startswith('/send_dm'):
-    #     direct_message(self, received_data, path)
+
+    elif path.startswith('/game_'):
+        in_game(self, received_data, path)
 
 
     elif '.css' in path:
@@ -74,17 +78,35 @@ def handle_get(self, received_data):
         print('Unrecognized Request, sending 404')
 
 
-# def direct_message(tcp_handler, received_data: bytes, path: str):
-#     split_paths = path.split('_')
-#     sender = split_paths[2].strip()
-#     receiver = split_paths[3].strip()
-#
-#     receiver_connection = web_socket_connections[receiver]
-#     response = {'messageType': 'chatMessage',
-#                 'comment': escape_html('placerholder')}
-#     receiver_connection.request.sendall()
-#     print(f'\r\nUser receiving dm from {sender} to receiver {receiver}')
-#     send_200(tcp_handler, 0, 'application/json', b'')
+def in_game(self, received_data, path):
+    print(f'\r\n------------- Starting a game for path ={path} -------------\r\n')
+    file_path = file_paths(self)
+    path, headers, content = parse_request(received_data)
+    template_dict = {'user': 'guest'}  # this will be fed into the template engine
+
+    set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))  # Get the cookie header.
+    authenticated_user = ''
+    auth_token = b''
+    if set_cookies:
+        cookie_list = set_cookies[0][1].split(b';')
+        for directive in cookie_list:
+            if b'=' not in directive:
+                continue
+            directive_name, directive_content = directive.split(b'=')
+            directive_name = directive_name.strip()
+            if directive_name == b'user':
+                user_token: bytes = directive_content.strip()
+                auth_token = user_token
+                authenticated_user = is_authenticated(db, cursor, user_token)
+            if authenticated_user:
+                template_dict['user'] = escape_html(str(authenticated_user))
+    if authenticated_user:
+        authenticated_users[authenticated_user] = auth_token
+    body = render_template(file_path['game.html'], template_dict).encode()
+    body = (body.decode().replace("'{{background_color}}'", get_color(db, cursor, authenticated_user))).encode()
+    length = len(body)
+    mimetype = 'text/html; charset=utf-8'
+    send_200(self, length, mimetype, body)
 
 
 def index(self, received_data: bytes):
@@ -197,11 +219,20 @@ def websocket(self, received_data):
     return_key = hashlib.sha1(key).digest()
     return_key = base64.b64encode(return_key)
     send_101(self, return_key)
-    print('sent request')
     self.handle_websocket(authenticated)
     # else:
     #     print("\r\nUpgrade request has been rejected\r\n")
     #     send_301(self, '/')
+
+
+def connect_user(self, received_data):
+    key = received_data.split(b'Sec-WebSocket-Key: ')[1]
+    key = key.split(b'\r\n')[0]
+    key += b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    return_key = hashlib.sha1(key).digest()
+    return_key = base64.b64encode(return_key)
+    send_101(self, return_key)
+    self.handle_game_connection()
 
 
 def chat(self, received_data):

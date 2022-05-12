@@ -45,19 +45,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         set_username_frame = build_frame(set_username, 129)
         self.request.sendall(set_username_frame)
 
-        # send the username to the browser
-
-        # username = ""
-        # ws_users = []
-        # ws_conn = []
-        # for usertxt in self.usernames:
-        #     if len(usertxt) != 0:
-        #         username = usertxt
-        #         if username not in ws_users:
-        #             ws_users.append(username)
-        #             ws_conn.append(self)
-        # print('usernmae: ' + str(username))
-
         while True:
             data = self.request.recv(1024)
             # print(str(data))
@@ -118,15 +105,62 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     if receiver_connection:
                         receiver_connection.request.sendall(response_frame)
                     else:
-                        print("\r\nRecipient was disconnected.")
+                        print("\r\n1. Recipient was disconnected.\r\n")
 
                 elif message_type == 'Challenge':
-                    pass
+                    sender = message['sender']
+                    receiver = message['receiver']
+                    response = {'messageType': 'Challenge', 'sender': sender, 'receiver': receiver}
+                    response = json.dumps(response)
+
+                    send_opcode = 129
+                    response_frame = build_frame(response, send_opcode)
+                    receiver_connection = web_socket_connections.get(receiver)
+
+                    if receiver_connection:
+                        receiver_connection.request.sendall(response_frame)
+                    else:
+                        print("\r\n2. Recipient was disconnected.\r\n")
+
+                elif message_type == 'ChallengeAccepted':
+                    sender = message['sender']
+                    receiver = message['receiver']
+                    response = {'messageType': 'ChallengeAccepted', 'sender': sender, 'receiver': receiver}
+                    response = json.dumps(response)
+
+                    send_opcode = 129
+                    response_frame = build_frame(response, send_opcode)
+                    sender_connection = web_socket_connections.get(sender)
+
+                    if sender_connection:
+                        sender_connection.request.sendall(response_frame)
+                    else:
+                        print("\r\n3. Recipient was disconnected.\r\n")
 
                 elif message_type == 'chessMessage':
                     pass
             sys.stdout.flush()
             sys.stderr.flush()
+
+    def handle_game_connection(self):
+        while True:
+            data = self.request.recv(1024)
+            # print(str(data))
+            if data != b'':
+                payload: bytearray = parse_frame(self, data)  # This function parses the frame
+                # TODO - How do we handle a disconnect request?
+                if payload == b'disconnect':
+                    print(f'\r\nDisconnecting\r\n')
+                    # web_socket_connections.pop(username, None)  # delete websocket connection from global variable
+                    break
+                # Pack into a json object
+                message = {}
+                try:
+                    message = json.loads(payload.decode())
+                except Exception as e:
+                    print(e)
+                    continue
+                print(f"Payload = {payload}")
 
     def handle(self):
         while True:

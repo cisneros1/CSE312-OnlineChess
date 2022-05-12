@@ -10,7 +10,7 @@ from stored_users import *
 
 
 def handle_post(tcp_handler, received_data):
-    print('POST DATA: ' + str(received_data))
+    # print('POST DATA: ' + str(received_data))
     path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode().strip()
     print('POST Request for: ' + str(path))
 

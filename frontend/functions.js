@@ -49,7 +49,7 @@ function addMessage(chatMessage) {
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
-function escape(message) {
+function escape_html(message) {
     return message.replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -68,14 +68,14 @@ function addUser(user) {
     }
 
     let box = document.getElementById('onlineUsers');
-    // let chat_box = document.getElementById('chat');
-    // path = /challenge_user_1_user2
+
     // const form = document.createElement("form");
     // form.method = "POST";
     // form.action = `/challenge_${username}_${user}`;
 
 
     // div for one user
+    let escaped_user = escape_html(user);
     const user_div = document.createElement("div");
     user_div.id = `div_${user}`;
 
@@ -85,46 +85,58 @@ function addUser(user) {
     // <button onclick="sendMessage()">Send</button>
     const label = document.createElement("label");
     label.for = `${user}_chat`;
-    label.innerText =  `MESSAGE ${user}: `;
+    label.innerText = `MESSAGE ${user}: `;
     user_div.innerHTML += label.outerHTML;
 
+    // The input field for DMing
     const chat_box = document.createElement("input");
     chat_box.type = "text";
     chat_box.id = `${user}_chat`;
     chat_box.name = "message";
     user_div.innerHTML += chat_box.outerHTML;
 
-
+    // Send DM button
     const send_button = document.createElement("button");
-    // send_button.onclick
-    // send_button.onclick = function () {
-    //     console.log('Test 1');
-    //     sendDM(user);
-    // };
     send_button.innerText = "Direct Message";
     send_button.setAttribute('onclick', `sendDM('${user}')`);
     user_div.innerHTML += send_button.outerHTML;
-    console.log('HTML element: ' + user_div.outerHTML);
 
+    // Send Challenge
+    const challenge_button = document.createElement("button");
+    challenge_button.innerText = "Challenge";
+    challenge_button.setAttribute('onclick', `sendChallenge('${user}')`);
+    user_div.innerHTML += challenge_button.outerHTML;
+
+    console.log('HTML element: ' + user_div.outerHTML);
     box.innerHTML += user_div.outerHTML;
+    box.innerHTML += '</br>';
+}
+
+// Send a challenge to a user
+function sendChallenge(to_challenge) {
+    socket.send(JSON.stringify({
+        'messageType': 'Challenge',
+        'sender': username,
+        'receiver': to_challenge
+    }));
 }
 
 function sendDM(user) {
     console.log(`Calling sendDM on ${user}`);
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            console.log('sendDM is now ready');
-        }
-    };
     let chat_box = document.getElementById(`${user}_chat`)
     let direct_message = chat_box.value;
     chat_box.value = '';
 
-    socket.send(JSON.stringify({'messageType': 'DirectMessage', 'comment': direct_message, 'sender': username, 'receiver': user}));
+    socket.send(JSON.stringify({
+        'messageType': 'DirectMessage',
+        'comment': direct_message,
+        'sender': username,
+        'receiver': user
+    }));
+}
 
-    // request.open("GET", `/send_dm_${username}_${user}_${direct_message}`)
-    // request.send();
+function AcceptChallenge(challenger) {
+    return confirm(`Accept a chess match from ${challenger}?`);
 }
 
 function get_online_users() {
@@ -180,6 +192,27 @@ socket.onmessage = function (ws_message) {
             console.log("Setting username = " + username);
             get_online_users();
             break;
+        // The case where a user got challenged and then accepts or declines
+        case 'Challenge':
+            let sender = message.sender;
+            let receiver = message.receiver;
+            if (AcceptChallenge(sender)) {
+                socket.send(JSON.stringify({
+                    'messageType': 'ChallengeAccepted',
+                    'sender': sender,
+                    'receiver': receiver
+                }));
+                window.location.replace(`/game_${sender}_${receiver}`);
+            }
+
+            break;
+
+        case 'ChallengeAccepted':
+            let challenger = message.sender;
+            let challenged = message.receiver;
+            window.location.replace(`/game_${challenger}_${challenged}`);
+            break;
+
         case 'webRTC-offer':
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
             webRTCConnection.createAnswer().then(answer => {
