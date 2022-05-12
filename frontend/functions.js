@@ -85,7 +85,7 @@ function addUser(user) {
     // <button onclick="sendMessage()">Send</button>
     const label = document.createElement("label");
     label.for = `${user}_chat`;
-    label.innerText = 'Chat: ';
+    label.innerText =  `MESSAGE ${user}: `;
     user_div.innerHTML += label.outerHTML;
 
     const chat_box = document.createElement("input");
@@ -96,6 +96,7 @@ function addUser(user) {
 
 
     const send_button = document.createElement("button");
+    // send_button.onclick
     send_button.onclick = function () {
         console.log('Test 1');
         sendDM(user);
