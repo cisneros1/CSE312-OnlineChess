@@ -100,6 +100,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
 
+                elif message_type == 'Challenge':
+                    pass
+
                 elif message_type == 'chessMessage':
                     pass
             sys.stdout.flush()
