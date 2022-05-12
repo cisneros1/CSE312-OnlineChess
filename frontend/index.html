@@ -19,66 +19,72 @@
             <i class='bx bx-menu' id="btn"></i>
         </div>
         <ul class="nav-list">
-            <li>
-                <a href="#">
-                    <i class='bx bx-grid-alt'></i>
-                    <span class="links_name">Dashboard</span>
-                </a>
-                <span class="tooltip">Dashboard</span>
-            </li>
-            <li>
-                <a href="#">
-                    <i class='bx bx-user'></i>
-                    <span class="links_name">User</span>
-                </a>
-                <span class="tooltip">User</span>
-            </li>
-            <li>
-                <a href="#">
-                    <i class='bx bx-chat'></i>
-                    <span class="links_name">Messages</span>
-                </a>
-                <span class="tooltip">Messages</span>
-            </li>
-            <li>
-                <a href="#">
-                    <i class='bx bx-cog'></i>
-                    <span class="links_name">Settings</span>
-                </a>
-                <span class="tooltip">Settings</span>
-            </li>
+           <h5>Online Users</h5>
+           <div id="onlineUsers">
+                <pre>   You</pre>
+           </div>
         </ul>
     </div>
-    <section class="home-section">
+    <section class="home-section" style="background-color: '{{background_color}}'">
+
+        <div id="login_button">
+            <a href="signin">Login</a>
+        </div>
 
         <h1 style="text-align: center">Online Chess</h1>
         <img id="chess_image" src="image/chessboard.jpg" class="img-rounded" alt="Chess Board" width="800" height="800" hidden>
         
         <h1>CSE312 Sample Page</h1>
+        <h2>Welcome {{user}}!</h2>
         
-        <p id="paragraph">
-            This text is from the HTML file 🙂
-        </p>
-
-        <script src="functions.js"></script>
         <script src="../Chess/ChessEngine.js"></script>
+        <script src="functions.js"></script>
 
-        <label for="chat-comment">Chat: </label>
-        <input id="chat-comment" type="text" name="comment">
-
-        <button onclick="sendMessage()">Send</button>
 
         <canvas id="chess_canvas" width="1000" height="1000" style="border:1px solid #d3d3d3;">
             Canvas here.
         </canvas>
 
+        <p id="paragraph">
+            This text is from the HTML file 🙂
+        </p>
+        <!-- TODO - remove this when done testing -->
+        <h6>Logged in users are: </h6>
+        <ul>
+        {{loop}}
+            <li>{{logged_in_user}}</li>
+        {{end_loop}}
+        </ul>
+        <br>
+                
+        
+        <label for="chat-comment">Chat: </label>
+        <input id="chat-comment" type="text" name="comment">
+
+
+        <button onclick="sendMessage()">Send</button>
+        <Br />
+        <!-- TODO: Make the post button actually do something -->
+        <label for="form-file">Image: </label>
+        <input id="form-file" type="file" name="upload">
+        <!-- <input type="submit" value="Post"> -->
+
         <div id="chat"></div>
+
+
+
+
+
 
         <br />
         <button onclick="startVideo()">Start My Video</button>
         <br />
         <button onclick="connectWebRTC()">Start Video Chat</button>
         <br />
+
+
+
+
 
         <video id="myVideo" autoplay muted></video>
         <br />

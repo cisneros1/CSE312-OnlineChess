@@ -1,79 +1,145 @@
-from request import Request
-import database as db
+# import backend.database as db
+from backend.database import *
+import secrets
+import bcrypt
+# from template_engine import *
+from backend.template_engine import *
+from backend.generate_response import *
+from backend.filepaths import *
+from stored_users import authenticated_users
 
-from generate_response import send_200, send_303
-from filepaths import file_paths
 
-# DEAL WITH ONLY GET REQUESTS
+def handle_post(tcp_handler, received_data):
+    print('POST DATA: ' + str(received_data))
+    path = ((received_data.split(b'\r\n')[0]).split(b' ')[1]).decode()
+    print('POST Request for: ' + str(path))
 
-
-def handle_messages(self, received_data: bytes):
-    print("---> POST ENTERED")
-    
-    image_uploaded = False
-    message_uploaded = False
-    message = ""
-    image_location = ""    
-    # Parse the entire request and write the bytes to a file
-    
-
-    if 'form-data; name="message"' in str(received_data):
-        message_uploaded = True
-        
-    if 'image/jpeg' in str(received_data):
-        image_uploaded = True
-
-    if image_uploaded or message_uploaded:
-        id = int(db.get_next_chat_id())
-        message: str = message_parse(self, received_data)
-
-        if image_uploaded:
-            image_location = "/root/user_images/usersimg_by(" + str(id) + ").jpg"
-            save_image(self, received_data, image_location)
-
-        username = ("User" + str(id))
-        store(id, username, message, image_location)
+    if 'login' in str(path):
+        login(tcp_handler, received_data)
+    elif path == '/signup_log':
+        print('ENTERING REDIRECT .......')
+        print(str(received_data))
+        signup(tcp_handler, received_data)
+    elif 'chat' in str(path):
+        chat(tcp_handler, received_data)
     else:
-        print("There was no image or message found in POST Request")
-        
-    
-    send_303(self, "http://localhost:8080/")
-    
-    
-def store(id: int, username: str, message: str, image_location: str):
-    chat_dict = {"_id": id, "username": username,"message": message, "image_location": image_location}
-    db.store_message(chat_dict)
+        print('Unrecognized Post Request, sending 404')
+        send_404(tcp_handler)
 
 
-# method to get image bytes and save image to file
-def save_image(self, received_data: bytes, image_location: str):
-    image_as_bytes: bytes = Request(received_data).body
-    print(str(image_as_bytes))
-    # take second half
-    image_as_bytes = image_as_bytes.split(b'Content-Type: image/jpeg\r\n\r\n')[1]
+# This function is not called
+def chat(tcp_handler, received_data: bytes):
+    # At this point user has been checked
+    print('chat')
+    username = ""
+    comment = escape_html(received_data.split(b'name="comment"\r\n\r\n')[
+                              1].split(b'\r\n')[0].decode())
+    token = escape_html(received_data.split(b'name="xsrf_token"\r\n\r\n')[
+                            1].split(b'\r\n')[0].decode())
 
-    # if this is present at end take bytes before
-    if '-----------' in str(image_as_bytes):
-        image_as_bytes = image_as_bytes.split(b'--------')[0]
+    is_token_valid: bool = False
+    for t in tcp_handler.valid_tokens:
+        if t == token:
+            is_token_valid = True
+            print('Token is valid')
 
-    # now we have the full body
-    with open(image_location, 'wb') as f:
-        f.write(image_as_bytes)
-
-
-def escape_html(received_data: bytes):
-    message_list = received_data.split(b'Content-Disposition: form-data; name="message"\r\n\r\n')
-    if len(message_list) > 1:
-        message = message_list[1]
-        print("body: " + str(message))
-        message = (message.split(b'\r\n')[0]).decode()
-        print("body: " + str(message))
+    if is_token_valid:
+        # check database for username and password
+        for user in tcp_handler.usernames:
+            if len(user) > 0:
+                username = user
+        print('USER FOR COMMENT: ' + str(username))
+        # store
+        id = db.get_comment_id()
+        entry = {'_id': id, 'messageType': 'chatMessage',
+                 'username': username, 'comment': comment}
+        db.insert_comment(entry)
+        send_201(tcp_handler)
     else:
-        message = ""
-        
-    message = message.replace("&", "&amp;")
-    message = message.replace("<", "&lt;")
-    message = message.replace(">", "&gt;")
+        print('404 in chat')
+        send_404(tcp_handler)
+
+# /login
+def login(tcp_handler, received_data: bytes):
+    print('----------- post login --------------')
+    token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
+    password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    color = received_data.split(b'name="color"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     
-    print("Message after escaping: " + message)
-    return message
+    print('Token: ' + token)
+    print('Username: ' + username)
+    print('password: ' + password)
+    print(f'Color: {color}')
+
+    auth_token: str = secrets.token_hex(nbytes=80)
+    auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), (bcrypt.gensalt()))
+    user_found: bool = authenticate_login(db, cursor, username, (password.encode()), auth_token_hashed)
+
+    if not user_found:
+        print('That user does not exist')
+        send_301(tcp_handler, '/')
+    else:
+        # if user found
+        authenticated_users[username] = auth_token  # Save user to global hashmap of users
+        # print(f'Authenticated users are {authenticated_users}')
+        tcp_handler.usernames.append(username)
+        
+        if color != '#ffffff':
+            change_color(db, cursor, username, color)
+        
+        
+        new_token = secrets.token_urlsafe(32)
+        tcp_handler.valid_tokens.append(new_token)
+    
+        # TODO - find a way to handle disconnects
+        auth_users = []
+        for auth_user in authenticated_users.keys():
+            auth_users.append({'logged_in_user': auth_user})
+        template_dict = {'username': username, 'loop_data': auth_users}
+
+        file_path = file_paths(tcp_handler)
+
+        print('Sending Auth Token: ' + str(auth_token))
+        send_301_with_token(tcp_handler, '/', auth_token)
+        # send_200_with_authtoken(tcp_handler, length, mimetype, body, auth_token)
+
+    # else:
+    #     send_404(tcp_handler)
+    #     print('404 has been sent')
+
+
+def signup(tcp_handler, received_data):
+    print('------------ post /signup_log -------------')
+    token = received_data.split(b'name="xsrf_token"\r\n\r\n')[
+        1].split(b'\r\n')[0].decode()
+    username = received_data.split(b'name="username"\r\n\r\n')[
+        1].split(b'\r\n')[0].decode()
+    password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
+    print('Token: ' + token)
+    print('Username: ' + username)
+    print('password: ' + password)
+    # print('Cookie:' + cookie)
+    # Check if token is valid
+    is_token_valid: bool = False
+
+    for t in tcp_handler.valid_tokens:
+        if t == token:
+            is_token_valid = True
+            print('Token is valid')
+
+    if is_token_valid:
+        # check password requirements
+        if username and password:
+            hashed_password: bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+            print(f'HASED_PWD: {hashed_password}')
+            
+            register_user(db, cursor, username, hashed_password)
+
+        send_301(tcp_handler, 'http://localhost:8080/signin')
+        print('REDIRECT WAS SENT')
+
+
+    else:
+        send_404(tcp_handler)

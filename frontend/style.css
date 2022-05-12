@@ -9,12 +9,13 @@
 }
 
 .sidebar {
+    background-color: #55321e;
     position: fixed;
     left: 0;
     top: 0;
     height: 100%;
     width: 78px;
-    background: #502701af;
+    /* background: #502701af; */
     padding: 6px 14px;
     z-index: 99;
     transition: all 0.5s ease;
@@ -258,9 +259,11 @@
 }
 
 .home-section {
+    /* background-image: url('image/back3.jpg'); */
+    /* background-color: #5f051b; */
+    color: white;
     text-align: center;
     position: relative;
-    background: #E4E9F7;
     min-height: 100vh;
     top: 0;
     left: 78px;
@@ -288,3 +291,6 @@
     }
 }
 
+.body {
+    color: white;
+}

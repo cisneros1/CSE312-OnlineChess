@@ -7,7 +7,6 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <!-- <script src="/functions.js"></script> -->
 
-
     <title>Login Page</title>
     <!--Made with love by Mutiullah Samim -->
 
@@ -28,11 +27,16 @@
         <div class="d-flex justify-content-center h-100">
             <div class="card">
                 <div class="card-header">
-                    <h3>Sign Up</h3>
+                    <h3>Sign In</h3>
+                    <!-- <div class="d-flex justify-content-end social_icon">
+                        <span><i class="fab fa-facebook-square"></i></span>
+                        <span><i class="fab fa-google-plus-square"></i></span>
+                        <span><i class="fab fa-twitter-square"></i></span>
+                    </div> -->
                 </div>
                 <div class="card-body">
 
-                    <form action="/signup_log" method="post" enctype="multipart/form-data">
+                    <form action="/login" method="post" enctype="multipart/form-data">
                         <input value="{{token}}" name="xsrf_token" hidden>
                         <div class="input-group form-group">
                             <!-- user icon -->
@@ -57,16 +61,22 @@
                                 name="password" required>
                         </div>
 
+                        <div>
+                        <label style="color: white" for="colorpicker">Pick the color for the background:</label>
+                        <input type="color" name="color" id="colorpicker" value="#ffffff">
+                        </div>
+
                         <!-- login button -->
+                        <!-- Removed this onClick="signin();" -->
                         <div class="form-group">
-                            <input type="submit" value="Login" class="btn float-right login_btn">
+                            <input onClick="signin();" type="submit" value="Login" class="btn float-right login_btn">
                         </div>
                     </form>
 
                 </div>
                 <div class="card-footer">
                     <div class="d-flex justify-content-center links">
-                        Already have an account?<a href="signin">Sign Up</a>
+                        Don't have an account?<a href="signup">Sign Up</a>
                     </div>
                 </div>
             </div>

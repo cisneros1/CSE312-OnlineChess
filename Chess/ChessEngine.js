@@ -1,3 +1,6 @@
+// const socket = new WebSocket('ws://' + window.location.host + '/websocket');
+
+
 class Piece {
     constructor(piece_name, grid_coord) {
         this.piece_name = piece_name;   // could be "b_pawn", w_knight", etc
@@ -342,19 +345,27 @@ class GameState {
         return false;
     }
 
+
     // This will remove moves that put the player in check
+    // TODO - finish this method
     filterMoves() {
         let saved_board = this.saveBoardState();
         let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
-        for (let piece of player_pieces){
-            for (const move of piece.moves){
+        for (let piece of player_pieces) {
+            let filtered_moves = [];
+            let filtered_capture_moves = [];
+            for (const move of piece.moves) {
                 this.MakeMove(piece, move);
+                this.generateAllMoves();
                 let in_check = this.in_check();
-                if (in_check){
-                    ;
+                if (!in_check) {
+                    filtered_moves.push(move);
+                    filtered_capture_moves.push(move);
                 }
                 this.loadBoardState(saved_board);
             }
+            piece.moves = filtered_moves;
+            piece.attack_moves = filtered_capture_moves;
         }
     }
 
@@ -481,6 +492,7 @@ const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
 console.log("Board Width: " + board_size);
 let all_pieces = [];    // Do not change this.
+
 
 // Display a chess on the board
 function displayImage(piece_name, x, y, height, width) {

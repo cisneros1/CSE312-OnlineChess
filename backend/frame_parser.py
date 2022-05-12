@@ -2,137 +2,179 @@
 # decimal to bytes::  to_bytes
 # decimal to binray:: bin(int)
 # binary to int:: int(bin, 2)
-
-def parse_frame(frame):
-    info_type = ""
-
-    if frame[0] == 129:
-        info_type = 'text'
-    else:
-        info_type = 'close'
-
-    payload_length = (bin(frame[1])[3:])
-
-    mask = []
-    start = 0
-    full_length_bytes = bytearray()
-
-    if payload_length != '1111110' and payload_length != '1111111':  # < 126    
-        full_length_bytes.append(frame[1] & 128)    
-        for byte_location in range(2, 6):
-            mask.append(frame[byte_location])
-        start = 6
-
-    elif payload_length == '1111110':  # 126
-        
-        for byte_location in range(2, 4):
-            full_length_bytes.append(frame[byte_location])
-
-        for byte_location in range(4, 8):
-            mask.append(frame[byte_location])
-        start = 8
-
-    elif payload_length == '1111111':
-        for byte_location in range(2, 10): # [1](1  1111111) (3)(4) (5)(6) (7)(8) (9)(10)
-            full_length_bytes.append(frame[byte_location])
-
-        for byte_location in range(10, 14):
-            mask.append(frame[byte_location])
-        start = 14
-    else:
-        print('Something wrong')
-
-    full_length_int = int.from_bytes(full_length_bytes, 'big')
-    print('The full length of the frame being parsed is: ' + str(full_length_int))
-
-    payload_end = start + full_length_int
-    masked_payload = frame[start:payload_end]
-
-    # unmask payload // if length is not a multiple of 4 use only
-    i = 0
-    unmasked_payload = b''
-    for byte in masked_payload:
-        masking_byte = mask[i % 4]
-        xor = (byte ^ masking_byte).to_bytes(1, 'big')
-        unmasked_payload += xor
-        i = ((i+1) % 4)
-
-    # print('ENTIRE UNMASKED PAYLOAD' + str(unmasked_payload))
+import sys
 
 
-    # RETURN PAYLOAD AND TYPE
-    if info_type == 'close':
-        payload = ""
-        print('Close Request Sent')
-        return ("", info_type)
-    
-    elif 'webRTC' in str(unmasked_payload):
-        print('Payload before Return: ' + str(unmasked_payload))
-        return (unmasked_payload, info_type)
-    
-    else:
-        print('Payload before Return: ' + str(unmasked_payload))
-        return (unmasked_payload.decode('utf8'), info_type)
-    
+# Read n number of bytes and increment i by n
+def read_byte(data, i, n=1):
+    byte = bytearray()
+    for index in range(n):
+        byte += int_to_bytearray(data[i + index], 1)
+    i += n
+    return byte, i
 
-# Create a Websocket frame
-def build_output_frame(ws_data):
-    print('building frame...')
-    frame = bytearray(b'\x81')
-    payload_len = len(ws_data)
 
+def escape_html(input):
+    return input.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
+def bytes_to_int(b: bytes):
+    return int.from_bytes(b, "big")
+
+
+# applies the mask to the payload
+def apply_mask(mask: bytearray, payload: bytearray) -> bytearray:
+    mask_len = len(mask)  # This should be 4
+    payload_len = len(payload)
+    masked_payload = bytearray()
+    # print(f"mask_len = {mask_len} and payload_len = {payload_len}")
+
+    for i in range(payload_len):
+        masked_byte: int = mask[i % mask_len] ^ payload[i]
+        # print(masked_byte)
+        masked_payload += masked_byte.to_bytes(1, 'big')
+    return masked_payload
+
+
+def int_to_bytearray(num: int, num_bytes) -> bytearray:
+    num_bytes: bytes = num.to_bytes(length=num_bytes, byteorder='big')
+    return bytearray(num_bytes)
+
+
+# Mask-bit is assumed to be zero
+def build_frame(message: str, opcode: int):
+    frame: bytearray = bytearray()
+    frame += int_to_bytearray(opcode, 1)
+    payload_len = len(message)
     if payload_len < 126:
-        frame.append(payload_len)
-        print(str(frame))
-
-    elif payload_len < 65536:
-        frame.append(126)
-        l = payload_len.to_bytes(2, 'big')
-        print(str(l))
-        frame += bytes(l)
-        print(str(frame))
-        
-        
-    else:
-        frame.append(127)
-        l = payload_len.to_bytes(8, 'big')
-        print(str(l))
-        frame += bytes(l)
-        print(str(frame))
-    
-    # append extra length
-
-    for byte in ws_data:
-        frame.append(byte)
-
+        frame += int_to_bytearray(payload_len, 1)
+        frame += message.encode()
+    elif payload_len >= 126 and payload_len < 65536:
+        frame += int_to_bytearray(126, 1)  # 7 bit length will be 126
+        frame += int_to_bytearray(payload_len, 2)  # next two bytes will be the actual payload_len
+        frame += message.encode()
+    elif payload_len >= 65536:
+        frame += int_to_bytearray(127, 1)  # 7 bit length will be 127
+        frame += int_to_bytearray(payload_len, 8)  # next two bytes will be the actual payload_len
+        frame += message.encode()
     return frame
 
 
-def find_payload_length(partial_frame): 
-    print(str(partial_frame))
-    print('We need to get length out of: ' + str(partial_frame[1]) + '==m|L |' + str(bin(partial_frame[1])))
-    payload_length = (bin(partial_frame[1])[3:])
-    
-    print('We got a payload length of ' + str(payload_length) + ' in the partial frame') 
-    full_length = bytearray()
-    full_length_int=0
-    
-    if payload_length != '1111110' and payload_length != '1111111':  # < 126
-        as_int = int(str(payload_length), 2)
-        print('Returning length: ' + str(as_int))
-        return as_int
-    
-    elif payload_length == '1111110':  # 126
-        for byte_location in range(2, 4):
-            full_length.append(partial_frame[byte_location])
+def parse_frame(tcp_instance, data) -> bytearray:
+    print(
+        f"\r\n------------- WebSocket Data with len = {len(data)} on web_index = {tcp_instance} ----------------")
+    # print("\r\n------------- End WebSocket Data 1 ----------------")
+    # opcode_mask = b'\x0f'   # 15 = 0000_1111
+    opcode_mask = 15  # 15 = 0000_1111
+    i = 0
+    cur_byte, i = read_byte(data, i)
+    opcode = opcode_mask & bytes_to_int(cur_byte)
+    # Handle disconnect
+    disconnect_opcode = b'\x08'
+    print(
+        f"opcode is {opcode} and disconnect opcode is {bytes_to_int(disconnect_opcode)} curbyte = {cur_byte}")
 
-    elif payload_length == '1111111':
-        for byte_location in (2,3,4,5,6,7,8,9):
-            full_length.append(partial_frame[byte_location])
-    else:
-        print('No length found in partial frame')
-    print('Hex Array: ' + str(full_length))
-    full_length_int = int.from_bytes(full_length, 'big')
-    print("Partial Frame's Length: " + str(full_length_int))
-        
-    return full_length_int
+    if opcode == bytes_to_int(disconnect_opcode):
+        return bytearray(b'disconnect')  # return empty byte
+
+        # Read the mask and payload len
+    mask_mask: int = bytes_to_int(b'\x80')  # mask for the mask bit. = 1000_0000
+    cur_byte, i = read_byte(data, i)
+    mask_bit: int = mask_mask & bytes_to_int(
+        cur_byte)  # is # 1000_0000 if mask bit = 1. 0000_0000 otherwise
+
+    payload_len_mask: int = bytes_to_int(b'\x7f')  # = 0111_1111
+    payload_len: int = payload_len_mask & bytes_to_int(
+        cur_byte)  # the payload len. Should be 1 bytes in size (8 bits)
+
+    payload = bytearray()
+    print(f"first 7 bits of payload length is {payload_len}. mask_bit = {mask_bit}")
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # payload with len < 126
+    if payload_len < 126:
+        # mask bit = 1. Read the mask bits
+        if mask_bit == mask_mask:
+            mask_key, i = read_byte(data, i, 4)  # next 4 bytes are the mask-key
+            payload, i = read_byte(data, i,
+                                   payload_len)  # read the next payload len bytes to get the payload
+            payload_unmasked: bytearray = apply_mask(mask_key, payload)
+            payload = payload_unmasked
+            # print(f"payload message is {payload_unmasked.decode()} with a mask")
+            # return payload_unmasked
+        else:
+            # the payload begins
+            payload, i = read_byte(data, i, payload_len)
+            # print(f"payload message is {payload.decode()} with no mask")
+            # return payload
+
+    elif payload_len == 126:
+        if mask_bit == mask_mask:
+            # TODO - Correct implementation here
+            # Get the actual payload length
+            payload_len_bytearray, i = read_byte(data, i,
+                                                 2)  # the next 16 bits (2 bytes) are the rest of the payload length
+            # get mask-key
+            mask_key, i = read_byte(data, i, 4)  # next 4 bytes are the mask-key
+
+            # Read the payload with buffering
+            payload_read: int = len(data) - i
+            payload_len: int = int.from_bytes(payload_len_bytearray, 'big')
+            payload: bytearray = data[i: len(data)]
+            while payload_read < payload_len:
+                more_payload = tcp_instance.request.recv(1024)
+                payload += more_payload
+                payload_read += len(more_payload)
+
+            # apply mask
+            payload_unmasked: bytearray = apply_mask(mask_key, payload)
+            payload = payload_unmasked
+
+        else:
+            # TODO - this might not work
+            # Get the actual payload length
+            payload_len_bytearray, i = read_byte(data, i,
+                                                 2)  # the next 16 bits (2 bytes) are the rest of the payload length
+
+            # Read the payload with buffering
+            payload_read: int = len(data) - i
+            payload_len: int = int.from_bytes(payload_len_bytearray, 'big')
+            payload: bytearray = data[i: len(data)]
+            while payload_read < payload_len:
+                more_payload = tcp_instance.request.recv(1024)
+                payload += more_payload
+                payload_read += len(more_payload)
+
+
+    elif payload_len == 127:
+        if mask_bit == mask_mask:
+            # Get the actual payload length
+            payload_len_bytearray, i = read_byte(data, i,
+                                                 8)  # the next 64 bits (8 bytes) are the rest of the payload length
+            # get mask-key
+            mask_key, i = read_byte(data, i, 4)  # next 4 bytes are the mask-key
+
+            # Read the payload with buffering
+            payload_read: int = len(data) - i
+            payload_len: int = int.from_bytes(payload_len_bytearray, 'big')
+            payload: bytearray = data[i: len(data)]
+            while payload_read < payload_len:
+                more_payload = tcp_instance.request.recv(1024)
+                payload += more_payload
+                payload_read += len(more_payload)
+
+            payload_unmasked: bytearray = apply_mask(mask_key, payload)
+            payload = payload_unmasked
+        else:
+            # Get the actual payload length
+            payload_len_bytearray, i = read_byte(data, i,
+                                                 8)  # the next 64 bits (8 bytes) are the rest of the payload length
+            # Read the payload with buffering
+            payload_read: int = len(data) - i
+            payload_len: int = int.from_bytes(payload_len_bytearray, 'big')
+            payload: bytearray = data[i: len(data)]
+            while payload_read < payload_len:
+                more_payload = tcp_instance.request.recv(1024)
+                payload += more_payload
+                payload_read += len(more_payload)
+    return payload
