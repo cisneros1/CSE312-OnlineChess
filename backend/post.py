@@ -65,10 +65,12 @@ def login(tcp_handler, received_data: bytes):
     token = received_data.split(b'name="xsrf_token"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     username = received_data.split(b'name="username"\r\n\r\n')[1].split(b'\r\n')[0].decode().strip()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
+    color = received_data.split(b'name="color"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     
     print('Token: ' + token)
     print('Username: ' + username)
     print('password: ' + password)
+    print(f'Color: {color}')
 
     auth_token: str = secrets.token_hex(nbytes=80)
     auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), (bcrypt.gensalt()))
@@ -82,8 +84,14 @@ def login(tcp_handler, received_data: bytes):
         authenticated_users[username] = auth_token  # Save user to global hashmap of users
         # print(f'Authenticated users are {authenticated_users}')
         tcp_handler.usernames.append(username)
+        
+        if color != '#ffffff' or color != get_color(db, cursor, username):
+            change_color(db, cursor, username, color)
+        
+        
         new_token = secrets.token_urlsafe(32)
         tcp_handler.valid_tokens.append(new_token)
+    
         # TODO - find a way to handle disconnects
         auth_users = []
         for auth_user in authenticated_users.keys():

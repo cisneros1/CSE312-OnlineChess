@@ -20,6 +20,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         inDocker = True
 
     usernames = []
+    
+    colors = []
     xsrf_token = {}
     valid_tokens = []  # The same for each user
 
