@@ -2,6 +2,7 @@
 const socket = new WebSocket('ws://' + window.location.host + '/websocket');
 let webRTCConnection;
 let token = "";
+let username = '';
 
 
 // Allow users to send messages by pressing enter instead of clicking the Send button
@@ -87,6 +88,10 @@ socket.onmessage = function (ws_message) {
         case 'chatMessage':
             addMessage(message);
             break;
+        case 'setUsername':
+            username = message.username;
+            console.log("Setting username = " + username)
+            break;
         case 'webRTC-offer':
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
             webRTCConnection.createAnswer().then(answer => {
@@ -107,9 +112,9 @@ socket.onmessage = function (ws_message) {
 
 socket.onclose = function (event) {
     console.log("Websocket connection closed")
-    const request = new XMLHttpRequest();
-    request.open("GET", "/close_websocket");
-    request.send();
+    // const request = new XMLHttpRequest();
+    // request.open("GET", "/close_websocket");
+    // request.send();
 };
 
 function startVideo() {
@@ -152,7 +157,6 @@ function connectWebRTC() {
         socket.send(JSON.stringify({'messageType': 'webRTC-offer', 'offer': webRTCOffer}));
         webRTCConnection.setLocalDescription(webRTCOffer);
     });
-
 }
 
 

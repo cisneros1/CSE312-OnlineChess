@@ -72,7 +72,7 @@ def login(tcp_handler, received_data: bytes):
 
     auth_token: str = secrets.token_hex(nbytes=80)
     auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode(), (bcrypt.gensalt()))
-    user_found: bool = authenticate_login(db, cursor, username, (password.encode()), auth_token_hashed)
+    user_found: bool = authenticate_login(db, cursor, username, password.encode(), auth_token_hashed)
 
     if not user_found:
         print('That user does not exist')

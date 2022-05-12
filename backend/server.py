@@ -28,7 +28,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle_websocket(self, username):
         print(f"\r\nUpgraded to websocket connection on instance {self} with user {username}\r\n")
         # Add this instance to global variable containing all the websocket connections
-        # TODO - right users can see new changes on reload but cannot send message
+        # TODO - right now users can see new changes on reload but cannot send message
         registered = False
         if username in authenticated_users:
             print(f"Added {username} to websocket connections")
@@ -37,6 +37,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         while not registered:
             pass
+
+        set_username = {'messageType': 'setUsername', 'username': username}
+        set_username = json.dumps(set_username)
+        set_username_frame = build_frame(set_username, 129)
+        self.request.sendall(set_username_frame)
+
+        # send the username to the browser
 
         # username = ""
         # ws_users = []

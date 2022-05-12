@@ -135,7 +135,7 @@ class Pawn extends Piece {
         super(piece_name, grid_coord);
     }
 
-    // TODO - Update to include capture moves and en passant moves. Untested.
+    // TODO - Update to include en passant moves. Untested.
     generateMoves(grid) {
         // Offset values. y, x, can_capture
         let flip_y = this.color === 'white' ? 1 : -1;
