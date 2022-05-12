@@ -32,12 +32,12 @@ function sendMessage() {
     } else if (comment === "" && file.includes(".jpg")) {
         console.log('Sending Image only');
         console.log(file);
-        socket.send(JSON.stringify({ 'messageType': 'imageMessage', 'comment': comment }));
+        socket.send(JSON.stringify({'messageType': 'imageMessage', 'comment': comment}));
     } else {
         console.log('Sending text and image in message');
         console.log(comment)
         console.log(file);
-        socket.send(JSON.stringify({ 'messageType': 'chatImageMessage', 'comment': comment }));
+        socket.send(JSON.stringify({'messageType': 'chatImageMessage', 'comment': comment}));
     }
 }
 
@@ -49,15 +49,23 @@ function addMessage(chatMessage) {
     chat.innerHTML += "<b>" + chatMessage["username"] + "</b>: " + chatMessage["comment"] + "<br/>";
 }
 
+function escape(message) {
+    return message.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+}
+
 // Render a single users
 function addUser(user) {
     // TODO - Handle html escaping?
-    console.log(`Adding ${user} to html`);
+    console.log(`Adding ${user} to html. username = ${username}`);
     // user is the other user being templated
-    if (user === username || username === ''){
+    if (user === username || username === '') {
         return;
     }
-
 
     let box = document.getElementById('onlineUsers');
     // let chat_box = document.getElementById('chat');
@@ -70,37 +78,37 @@ function addUser(user) {
     // div for one user
     const user_div = document.createElement("div");
     user_div.id = `div_${user}`;
+
     // chat box for a user. format is:
     // <label for="chat-comment">Chat: </label>
     // <input id="chat-comment" type="text" name="comment">
     // <button onclick="sendMessage()">Send</button>
     const label = document.createElement("label");
     label.for = `${user}_chat`;
-    label.innerText = 'Chat :'
-    user_div.appendChild(label);
-    // user_div.innerHTML += label;
-    // user_div.appendChild(label);
+    label.innerText = 'Chat: ';
+    user_div.innerHTML += label.outerHTML;
 
     const chat_box = document.createElement("input");
     chat_box.type = "text";
     chat_box.id = `${user}_chat`;
     chat_box.name = "message";
-    // user_div.innerHTML += chat_box;
-    user_div.appendChild(chat_box);
+    user_div.innerHTML += chat_box.outerHTML;
+
 
     const send_button = document.createElement("button");
     send_button.onclick = function () {
+        console.log('Test 1');
         sendDM(user);
     };
     send_button.innerText = "Direct Message";
-    // user_div.innerHTML += send_button;
-    user_div.appendChild(send_button);
-    // console.log()
+    user_div.innerHTML += send_button.outerHTML;
+    console.log('HTML element: ' + user_div.outerHTML);
 
-    box.appendChild(user_div);
+    box.innerHTML += user_div.outerHTML;
 }
 
 function sendDM(user) {
+    console.log(`Calling sendDM on ${user}`);
     const request = new XMLHttpRequest();
     request.open("POST", `/send_dm_${user}`)
     request.send();
@@ -156,7 +164,8 @@ socket.onmessage = function (ws_message) {
             break;
         case 'setUsername':
             username = message.username;
-            console.log("Setting username = " + username)
+            console.log("Setting username = " + username);
+            get_online_users();
             break;
         case 'webRTC-offer':
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
@@ -229,7 +238,7 @@ function connectWebRTC() {
 function welcome() {
     document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
     get_chat_history();
-    get_online_users();
+
     // const tokenLoad = document.getElementById("xsrf_token");
     // token = tokenLoad.value;
     // console.log(token);

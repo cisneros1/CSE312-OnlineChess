@@ -64,16 +64,16 @@ def is_authenticated(db, cursor, token: bytes):
             username = row[0]
             color = row[1]
             hashed_token = row[3]
-            
+
             print(f'Background Color: {color}')
-            if (isinstance(hashed_token, bytes) or isinstance(hashed_token, bytearray)):
+            if isinstance(hashed_token, bytes) or isinstance(hashed_token, bytearray):
                 print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
                     continue
                 if bcrypt.checkpw(token, hashed_token):
                     print(f'Found a match with user {username}')
                     return username
-                
+
             else:
                 print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
@@ -81,9 +81,7 @@ def is_authenticated(db, cursor, token: bytes):
                 if bcrypt.checkpw(token, str(hashed_token).encode()):
                     post_token(db, cursor, username, token)
                     return username
-                else:
-                    return ""
-                
+
     except Exception as e:
         print(f'2. Attempted to authenticate token = {token}. Got error {e}')
         return ''
@@ -113,7 +111,7 @@ def change_color(db, cursor, username: str, color: str):
         values = (color, username)
         cursor.execute(query, values)
         db.commit()
-        
+
 
 def get_color(db, cursor, username):
     color = ""
@@ -126,14 +124,12 @@ def get_color(db, cursor, username):
     return color
 
 
-
-
 def authenticate_login(db, cursor, username: str, password, token):
     print('AUTHENTICATING LOGIN')
     print(f'Username: {username}')
     print(f'Password: {password}')
     print(f'token: {token}')
-    
+
     try:
         query = "SELECT password FROM registered_users WHERE username = %s"
         values = (username,)
@@ -142,7 +138,7 @@ def authenticate_login(db, cursor, username: str, password, token):
         if row:
             stored_password = row[0]
             print(f'Stored Password: {stored_password}')
-            
+
             if (isinstance(stored_password, bytes) or isinstance(stored_password, bytearray)):
                 if bcrypt.checkpw(password, stored_password):
                     post_token(db, cursor, username, token)
