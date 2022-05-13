@@ -6,6 +6,7 @@ Things to take note of
         * If you're going to work on those files then make a separate branch.
     * Once both users are connected they get added to the global 'connected_users' and 'connected_sockets'
     * Both users will be connected to the '/connect_socket' websocket connection
+    * game.html and ChessEngineOnline.js are the main files being used once the challenge is accepted and both are redirected
 
 Things to work on:
 1. Create a normal chatbox multi-part form like in homework 2 that can handle images. A websocket connection won't cut it
