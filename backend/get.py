@@ -111,12 +111,7 @@ def in_game(self, received_data, path):
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
                 authenticated_user = is_authenticated(user_token)
-# <<<<<<< HEAD
             print(f"authenticated user = {authenticated_user} in game.html")
-# =======
-#                 authenticated_user = is_authenticated(db, cursor, user_token)
-#             # print(f"authenticated user = {authenticated_user} in game.html")
-# >>>>>>> ad799d271f93061176000e950cd3d04b56eef5d9
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:

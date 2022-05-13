@@ -1,3 +1,40 @@
+# JESSE HARTLOFF's Parser
+# Not actually used but here if needed
+
+
+class Request:
+    new_line = b'\r\n'
+    blank_line_boundary = b'\r\n\r\n'
+
+
+def __init__(self, request: bytes):
+    # dont do anything with body because we dont know what it is
+    [request_line, self.headers_as_bytes, self.body] = split_request(request)
+    [self.method, self.path, self.http_version] = parse_request_line(request_line)
+    self.headers = parse_headers(self.headers_as_bytes)
+
+
+def split_request(request: bytes):
+    first_new_line_boundary = request.find(Request.new_line)
+    blank_line_boundary = request.find(Request.blank_line_boundary)
+
+    request_line = request[:first_new_line_boundary]
+    headers_as_bytes = request[(first_new_line_boundary + len(Request.new_line)):blank_line_boundary]
+    body = request[(blank_line_boundary + len(Request.blank_line_boundary)):]
+    return [request_line, headers_as_bytes, body]
+
+
+def parse_request_line(request_line: bytes):
+    return request_line.decode().split(' ')
+
+
+def parse_headers(headers_raw: bytes):
+    headers = {}
+    lines_as_str = headers_raw.decode().split(Request.new_line.decode())
+    for line in lines_as_str:
+        splits = line.split(':')
+        headers[splits[0].strip()] = splits[1].strip()  # remove whitespace of headers after colon
+    return
 
 
 # Returns 'get', 'post' etc
@@ -6,6 +43,7 @@ def find_request_type(request: str):
     header_info = string_list[0].split(" ")
     req_type = header_info[0]
     return req_type.lower()
+
 
 # returns the path, headers and content(if applicable) in a tuple
 # return type is a bytearray (for each element)
@@ -60,6 +98,7 @@ def parse_request(request: bytes):
         print("error during parsing.")
         return None
 
+
 # given a file return the corresponding bytearray
 def file_to_array(file):
     array = bytearray()
@@ -89,6 +128,7 @@ def bytes_read(data):
     first_double_crlf = data.find(b'\r\n\r\n')
     return len(data) - first_double_crlf - len(b'\r\n\r\n')
 
+
 # Input: 2d array of headers. Use the outputs from parse_request
 # Returns the boundary used in the multi-form request
 def get_boundary(headers):
@@ -100,7 +140,6 @@ def get_boundary(headers):
             boundary = header[1][dashes_index + 4: len(header[1])]
             break
     return boundary
-
 
 
 # Parses multi-part forms
@@ -120,10 +159,10 @@ def parse_content(data, boundary):
         if form != b'--\r\n' and form != b'':
             first_crlf_idx = form.find(b'\r\n\r\n')
             header = form[0: first_crlf_idx]
-            form_content = form[first_crlf_idx+4: len(form)]
+            form_content = form[first_crlf_idx + 4: len(form)]
             # clean up form data
             header = header[2:len(header)]  # remove the \r\n in the beginning of the header
-            form_content = form_content[0: len(form_content)-2]   # remove the \r\n at the end of the content
+            form_content = form_content[0: len(form_content) - 2]  # remove the \r\n at the end of the content
             all_content.append([header, form_content])
     return all_content
 
@@ -156,12 +195,13 @@ def parse_data(data):
 
     return all_content
 
+    # Parses form data by splitting at ';'
+    # Used to determine if an image or a comment was uploaded or both
+    # Input: Uses the inputs from parse_data above
+    # Output: A dictionary where the key is the form's name and the value is the form data
+    # Example output: dict["name"] = '"comment"'
 
- # Parses form data by splitting at ';'
- # Used to determine if an image or a comment was uploaded or both
- # Input: Uses the inputs from parse_data above
- # Output: A dictionary where the key is the form's name and the value is the form data
- # Example output: dict["name"] = '"comment"' 
+
 def parse_form_data(form):
     all_form_data = {}
     form_data_list = form.split(b';')

@@ -150,7 +150,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         set_username = json.dumps(set_username)
         set_username_frame = build_frame(set_username, 129)
         self.request.sendall(set_username_frame)
-        print('test 2')
+
+        game_start = False
 
         while True:
             data = self.request.recv(1024)
@@ -196,6 +197,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 if other_user_connection is None:
                     continue
 
+                # Start the chess game
+                if not game_start:
+                    sender_response = {'messageType': 'startGame', 'challenger': True}
+                    receiver_response = {'messageType': 'startGame', 'challenger': False}
+
+                    sender_response = json.dumps(sender_response)
+                    receiver_response = json.dumps(receiver_response)
+
+                    sender_frame = build_frame(sender_response, send_opcode)
+
+                    game_start = True
+
                 if message_type == 'chatMessage':
                     response = {'messageType': 'chatMessage', 'username': username,
                                 'comment': escape_html(message['comment'])}
@@ -216,7 +229,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             sys.stderr.flush()
 
             self.full_bytes_sent += self.data
-
+            # Ultimate Buffering!
             if len(self.data) < 1023:
                 break
 

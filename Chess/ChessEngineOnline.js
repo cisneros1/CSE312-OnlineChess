@@ -57,6 +57,12 @@ socket.onmessage = function (ws_message) {
             addMessage(message);
             break;
 
+        case 'startGame':
+            break;
+
+        case 'chessMove':
+            break;
+
         case 'webRTC-offer':
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
             webRTCConnection.createAnswer().then(answer => {

@@ -1,12 +1,14 @@
 # import backend.database as db
 from backend.database import *
-import secrets
-import bcrypt
+import secrets, bcrypt, random
+
 # from template_engine import *
 from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
 from stored_users import *
+
+
 
 
 def handle_post(tcp_handler, received_data):
@@ -16,6 +18,9 @@ def handle_post(tcp_handler, received_data):
 
     if 'login' in str(path):
         login(tcp_handler, received_data)
+
+    elif '/image-upload' in path:
+        postImage(tcp_handler, received_data, path)
 
     elif path == '/signup_log':
         print(str(received_data))
@@ -33,6 +38,24 @@ def handle_post(tcp_handler, received_data):
     else:
         print('Unrecognized Post Request, sending 404')
         send_404(tcp_handler)
+
+
+def postImage(tcp_handler, received_data: bytes, path: str):
+
+    user = path.split('_')[1]
+    unique_id = random.randomint(0,1000)
+    unique_path = f'/root/backend/images/{user}_{unique_id}'
+
+    # Parse received_data to get
+
+
+
+
+
+    with open(unique_path, 'wb') as img:
+        img.write()
+
+
 
 
 def direct_message(tcp_handler, received_data: bytes, path: str):

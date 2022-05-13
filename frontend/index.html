@@ -60,8 +60,6 @@
         
         <label for="chat-comment">Chat: </label>
         <input id="chat-comment" type="text" name="comment">
-
-
         <button onclick="sendMessage()">Send</button>
         <br />
 
@@ -70,12 +68,7 @@
         <!-- <input type="submit" value="Post"> -->
 
         <div id="chat"></div>
-<!--        // DM from otheruser: actual message -->
-
-
-
-
-
+<!--        // DM from other user: actual message -->
 
         <br />
         <button onclick="startVideo()">Start My Video</button>
@@ -83,13 +76,18 @@
         <button onclick="connectWebRTC()">Start Video Chat</button>
         <br />
 
-
-
-
-
         <video id="myVideo" autoplay muted></video>
         <br />
         <video id="otherVideo" autoplay></video>
+
+    <form action="/image-upload_{{user}}" id="image-form" method="post" enctype="multipart/form-data">
+       <label for="image-form-comment">Comment: </label>
+       <textarea id="image-form-comment" name="comment" cols="40" rows="6"></textarea>
+       <br/>
+       <label for="image-file">Image: </label>
+       <input id="image-file" type="file" name="upload">
+       <input type="submit" value="Post">
+    </form>
 
 
     </section>
