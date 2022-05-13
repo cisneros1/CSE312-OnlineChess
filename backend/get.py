@@ -110,7 +110,7 @@ def in_game(self, received_data, path):
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
                 authenticated_user = is_authenticated(db, cursor, user_token)
-            print(f"authenticated user = {authenticated_user} in game.html")
+            # print(f"authenticated user = {authenticated_user} in game.html")
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
@@ -220,7 +220,7 @@ def websocket(self, received_data):
                 visits = int(directive_content.strip()) + 1
             elif directive_name == b'user':
                 user_token: bytes = directive_content.strip()
-                print('Checking token: ' + str(user_token))
+                # print('Checking token: ' + str(user_token))
                 authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
     # Only authenticated users get upgraded to a websocket connection.
     # if authenticated:
@@ -255,7 +255,7 @@ def connect_user(self, received_data):
                 visits = int(directive_content.strip()) + 1
             elif directive_name == b'user':
                 user_token: bytes = directive_content.strip()
-                print('Checking token: ' + str(user_token))
+                # print('Checking token: ' + str(user_token))
                 authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
     if authenticated:
         connected_users[authenticated] = self
