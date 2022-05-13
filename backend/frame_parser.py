@@ -71,8 +71,7 @@ def parse_frame(tcp_instance, data) -> bytearray:
     opcode = opcode_mask & bytes_to_int(cur_byte)
     # Handle disconnect
     disconnect_opcode = b'\x08'
-    print(
-        f"opcode is {opcode} and disconnect opcode is {bytes_to_int(disconnect_opcode)} curbyte = {cur_byte}")
+    # print(f"opcode is {opcode} and disconnect opcode is {bytes_to_int(disconnect_opcode)} curbyte = {cur_byte}")
 
     if opcode == bytes_to_int(disconnect_opcode):
         return bytearray(b'disconnect')  # return empty byte
@@ -88,7 +87,7 @@ def parse_frame(tcp_instance, data) -> bytearray:
         cur_byte)  # the payload len. Should be 1 bytes in size (8 bits)
 
     payload = bytearray()
-    print(f"first 7 bits of payload length is {payload_len}. mask_bit = {mask_bit}")
+    # print(f"first 7 bits of payload length is {payload_len}. mask_bit = {mask_bit}")
     sys.stdout.flush()
     sys.stderr.flush()
     # payload with len < 126

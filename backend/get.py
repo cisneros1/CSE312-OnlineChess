@@ -111,7 +111,12 @@ def in_game(self, received_data, path):
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
                 authenticated_user = is_authenticated(user_token)
+# <<<<<<< HEAD
             print(f"authenticated user = {authenticated_user} in game.html")
+# =======
+#                 authenticated_user = is_authenticated(db, cursor, user_token)
+#             # print(f"authenticated user = {authenticated_user} in game.html")
+# >>>>>>> ad799d271f93061176000e950cd3d04b56eef5d9
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
@@ -225,6 +230,12 @@ def websocket(self, received_data):
                 user_token: bytes = directive_content.strip()
                 print('Checking token: ' + str(user_token))
                 authenticated = is_authenticated(user_token)  # Check query token with hash
+# <<<<<<< HEAD
+
+# =======
+#                 # print('Checking token: ' + str(user_token))
+#                 authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
+# >>>>>>> ad799d271f93061176000e950cd3d04b56eef5d9
     # Only authenticated users get upgraded to a websocket connection.
     # if authenticated:
     sys.stdout.flush()
@@ -262,6 +273,12 @@ def connect_user(self, received_data):
                 authenticated = is_authenticated(user_token)  # Check query token with hash
     # if authenticated:
     #     connected_users[authenticated] = self
+# =======
+#                 # print('Checking token: ' + str(user_token))
+#                 authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
+#     if authenticated:
+#         connected_users[authenticated] = self
+# >>>>>>> ad799d271f93061176000e950cd3d04b56eef5d9
     key = received_data.split(b'Sec-WebSocket-Key: ')[1]
     key = key.split(b'\r\n')[0]
     key += b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'

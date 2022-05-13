@@ -96,8 +96,8 @@ def login(tcp_handler, received_data: bytes):
     color = received_data.split(b'name="color"\r\n\r\n')[1].split(b'\r\n')[0].decode()
 
     # print('Token: ' + token)
-    print('Username: ' + username)
-    print('password: ' + password)
+    # print('Username: ' + username)
+    # print('password: ' + password)
     print(f'Color: {color}')
 
     auth_token: str = secrets.token_hex(nbytes=80)
@@ -144,9 +144,9 @@ def signup(tcp_handler, received_data):
         1].split(b'\r\n')[0].decode()
     password = received_data.split(b'name="password"\r\n\r\n')[1].split(b'\r\n')[0].decode()
     # cookie = received_data.split(b'Cookie: ')[1].split(b'\r\n')[0].decode()
-    print('Token: ' + token)
-    print('Username: ' + username)
-    print('password: ' + password)
+    # print('Token: ' + token)
+    # print('Username: ' + username)
+    # print('password: ' + password)
     # print('Cookie:' + cookie)
     # Check if token is valid
     is_token_valid: bool = False
@@ -160,7 +160,7 @@ def signup(tcp_handler, received_data):
         # check password requirements
         if username and password:
             hashed_password: bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-            print(f'HASED_PWD: {hashed_password}')
+            # print(f'HASED_PWD: {hashed_password}')
 
             register_user(username, hashed_password)
 

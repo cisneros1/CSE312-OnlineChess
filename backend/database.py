@@ -56,10 +56,10 @@ def is_authenticated(token: bytes):
         cursor.execute(query)
         rows = cursor.fetchall()
     except Exception as e:
-        print(f'Attempted to authenticate token = {token}. Got error {e}')
+        # print(f'Attempted to authenticate token = {token}. Got error {e}')
         return ''
     try:
-        print(f'all authenticated rows with token set are {rows}')
+        # print(f'all authenticated rows with token set are {rows}')
         for row in rows:
             username = row[0]
             color = row[2]
@@ -67,7 +67,7 @@ def is_authenticated(token: bytes):
 
             print(f'Background Color: {color}')
             if isinstance(hashed_token, bytes) or isinstance(hashed_token, bytearray):
-                print(f'checking user = {username} and stored token = {hashed_token}')
+                #  print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
                     continue
                 if bcrypt.checkpw(token, hashed_token):
@@ -75,7 +75,7 @@ def is_authenticated(token: bytes):
                     return username
 
             else:
-                print(f'checking user = {username} and stored token = {hashed_token}')
+                # print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
                     continue
                 if bcrypt.checkpw(token, hashed_token.encode('utf8')):
@@ -83,9 +83,9 @@ def is_authenticated(token: bytes):
                     return username
 
     except Exception as e:
-        print(f'2. Attempted to authenticate token = {token}. Got error {e}')
+        # print(f'2. Attempted to authenticate token = {token}. Got error {e}')
         return ''
-    print(f'is_authenticated = false on token = {token}')
+    # print(f'is_authenticated = false on token = {token}')
     return ''
 
 
@@ -93,11 +93,12 @@ def post_token(username: str, token: bytes):
     try:
         query = "UPDATE registered_users SET auth_token = %s WHERE username = %s"
         values = (token, username)
-        print(f"Setting values = {values} for username = {username}")
+        # print(f"Setting values = {values} for username = {username}")
         cursor.execute(query, values)
         db.commit()
     except Exception as e:
-        print(f"Attempted to update token on username = {username}")
+        #print(f"Attempted to update token on username = {username}")
+        pass
 
 
 def change_color(username: str, color: str):
@@ -126,12 +127,12 @@ def get_color(username):
     return color
 
 
+
 def authenticate_login(username: str, password, token):
     print('AUTHENTICATING LOGIN')
     print(f'Username: {username}')
     print(f'Password: {password}')
     print(f'token: {token}')
-
     try:
         query = "SELECT password FROM registered_users WHERE username = %s"
         values = (username,)
@@ -139,7 +140,7 @@ def authenticate_login(username: str, password, token):
         row = cursor.fetchone()
         if row:
             stored_password = row[0]
-            print(f'Stored Password: {stored_password}')
+            # print(f'Stored Password: {stored_password}')
 
             if (isinstance(stored_password, bytes) or isinstance(stored_password, bytearray)):
                 if bcrypt.checkpw(password, stored_password):
@@ -177,7 +178,7 @@ def register_user(username: str, password: bytes):
 
     else:
         try:
-            print(f"Insert a new user. username = {username} and pass = {password}")
+            # print(f"Insert a new user. username = {username} and pass = {password}")
             query = "INSERT INTO registered_users (username, password, color, auth_token) VALUES (%s, %s, %s, %s)"
             values = (username, password, "white", b'')
             cursor.execute(query, values)
