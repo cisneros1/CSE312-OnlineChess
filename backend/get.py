@@ -94,7 +94,8 @@ def in_game(self, received_data, path):
     # Associate the two users
     i, sender, receiver = path.split('_')
     connected_users[sender.strip()] = ['sender', receiver.strip()]
-    connected_users[receiver.strip()] = ['receiver', receiver.strip()]
+    connected_users[receiver.strip()] = ['receiver', sender.strip()]
+    print(f'connected users = {connected_users}')
 
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))  # Get the cookie header.
     authenticated_user = ''
@@ -109,14 +110,16 @@ def in_game(self, received_data, path):
             if directive_name == b'user':
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
-                authenticated_user = is_authenticated(db, cursor, user_token)
+                authenticated_user = is_authenticated(user_token)
             print(f"authenticated user = {authenticated_user} in game.html")
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
-        authenticated_users[authenticated_user] = auth_token
+        print('authenticated in game.html')
+        # authenticated_users[authenticated_user] = auth_token
     body = render_template(file_path['game.html'], template_dict).encode()
-    body = (body.decode().replace("'{{background_color}}'", get_color(db, cursor, authenticated_user))).encode()
+    color = get_color(authenticated_user)
+    body = (body.decode().replace("'{{background_color}}'", color)).encode()
     length = len(body)
     mimetype = 'text/html; charset=utf-8'
     send_200(self, length, mimetype, body)
@@ -141,7 +144,7 @@ def index(self, received_data: bytes):
             if directive_name == b'user':
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
-                authenticated_user = is_authenticated(db, cursor, user_token)
+                authenticated_user = is_authenticated(user_token)
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
@@ -152,7 +155,7 @@ def index(self, received_data: bytes):
         auth_users.append({'logged_in_user': escape_html(auth_user)})
     template_dict['loop_data'] = auth_users
     body = render_template(file_path['index.html'], template_dict).encode()
-    color = get_color(db, cursor, authenticated_user)
+    color = get_color(authenticated_user)
     body = (body.decode().replace("'{{background_color}}'", color)).encode()
     length = len(body)
     mimetype = 'text/html; charset=utf-8'
@@ -221,7 +224,7 @@ def websocket(self, received_data):
             elif directive_name == b'user':
                 user_token: bytes = directive_content.strip()
                 print('Checking token: ' + str(user_token))
-                authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
+                authenticated = is_authenticated(user_token)  # Check query token with hash
     # Only authenticated users get upgraded to a websocket connection.
     # if authenticated:
     sys.stdout.flush()
@@ -256,9 +259,9 @@ def connect_user(self, received_data):
             elif directive_name == b'user':
                 user_token: bytes = directive_content.strip()
                 print('Checking token: ' + str(user_token))
-                authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
-    if authenticated:
-        connected_users[authenticated] = self
+                authenticated = is_authenticated(user_token)  # Check query token with hash
+    # if authenticated:
+    #     connected_users[authenticated] = self
     key = received_data.split(b'Sec-WebSocket-Key: ')[1]
     key = key.split(b'\r\n')[0]
     key += b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'

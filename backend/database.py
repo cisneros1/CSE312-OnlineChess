@@ -46,7 +46,7 @@ for database in databases:
 #     return cursor.fetchall()
 
 
-def is_authenticated(db, cursor, token: bytes):
+def is_authenticated(token: bytes):
     # print(f'authenticating random token = {token}')
     # all_reg_users = retrieve_authenticated_users()
     # print(f'All users are {all_reg_users}')
@@ -62,7 +62,7 @@ def is_authenticated(db, cursor, token: bytes):
         print(f'all authenticated rows with token set are {rows}')
         for row in rows:
             username = row[0]
-            color = row[1]
+            color = row[2]
             hashed_token = row[3]
 
             print(f'Background Color: {color}')
@@ -78,8 +78,8 @@ def is_authenticated(db, cursor, token: bytes):
                 print(f'checking user = {username} and stored token = {hashed_token}')
                 if hashed_token is None:
                     continue
-                if bcrypt.checkpw(token, str(hashed_token).encode()):
-                    post_token(db, cursor, username, token)
+                if bcrypt.checkpw(token, hashed_token.encode('utf8')):
+                    post_token(username, token)
                     return username
 
     except Exception as e:
@@ -89,7 +89,7 @@ def is_authenticated(db, cursor, token: bytes):
     return ''
 
 
-def post_token(db, cursor, username: str, token: bytes):
+def post_token(username: str, token: bytes):
     try:
         query = "UPDATE registered_users SET auth_token = %s WHERE username = %s"
         values = (token, username)
@@ -100,7 +100,7 @@ def post_token(db, cursor, username: str, token: bytes):
         print(f"Attempted to update token on username = {username}")
 
 
-def change_color(db, cursor, username: str, color: str):
+def change_color(username: str, color: str):
     select_query = "SELECT * FROM registered_users WHERE username = %s"
     values = (username,)
     cursor.execute(select_query, values)
@@ -113,18 +113,20 @@ def change_color(db, cursor, username: str, color: str):
         db.commit()
 
 
-def get_color(db, cursor, username):
-    color = ""
+def get_color(username):
+    color = "#cc0000"
     query = "SELECT color FROM registered_users WHERE username = %s"
     values = (username,)
     cursor.execute(query, values)
     all_users = cursor.fetchall()
     for a_user in all_users:
+        print(f"Found color {a_user[0]}")
         return a_user[0]
+    print('returning default color')
     return color
 
 
-def authenticate_login(db, cursor, username: str, password, token):
+def authenticate_login(username: str, password, token):
     print('AUTHENTICATING LOGIN')
     print(f'Username: {username}')
     print(f'Password: {password}')
@@ -141,13 +143,13 @@ def authenticate_login(db, cursor, username: str, password, token):
 
             if (isinstance(stored_password, bytes) or isinstance(stored_password, bytearray)):
                 if bcrypt.checkpw(password, stored_password):
-                    post_token(db, cursor, username, token)
+                    post_token(username, token)
                     return True
                 else:
                     return False
             else:
                 if bcrypt.checkpw(password, str(stored_password).encode()):
-                    post_token(db, cursor, username, token)
+                    post_token(username, token)
                     return True
                 else:
                     return False
@@ -161,7 +163,7 @@ def authenticate_login(db, cursor, username: str, password, token):
 # Register a user and store a hash of their password on the database
 # password parameter is assumed to already be hashed
 # If a username is already present in the database then simply update the password
-def register_user(db, cursor, username: str, password: bytes):
+def register_user(username: str, password: bytes):
     select_query = "SELECT * FROM registered_users WHERE username = (%s)"
     values = (username,)
     cursor.execute(select_query, values)

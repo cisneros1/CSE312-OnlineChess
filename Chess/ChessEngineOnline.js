@@ -1,9 +1,5 @@
 let socket = new WebSocket('ws://' + window.location.host + '/connect_socket');
 
-socket.onmessage = function () {
-    console.log("Got a message in ChessEngineOnline.js")
-}
-
 // Allow users to send messages by pressing enter instead of clicking the Send button
 document.addEventListener("keypress", function (event) {
     if (event.code === "Enter") {
@@ -27,7 +23,8 @@ function sendMessage() {
         // TODO: Handle images and text from user uploads
         console.log('Sending a Normal Message');
         console.log(comment)
-        socket.send(JSON.stringify({'messageType': 'chatMessage', 'comment': comment}));
+        let message = JSON.stringify({'messageType': 'chatMessage', 'comment': comment})
+        socket.send(message);
     }
 }
 
@@ -52,10 +49,11 @@ function escape_html(message) {
 socket.onmessage = function (ws_message) {
     const message = JSON.parse(ws_message.data);
     const messageType = message.messageType
-    console.log('Got message: ' + message)
+    console.log('Got message: ' + ws_message.data)
 
     switch (messageType) {
         case 'chatMessage':
+            console.log('got a chat message')
             addMessage(message);
             break;
 

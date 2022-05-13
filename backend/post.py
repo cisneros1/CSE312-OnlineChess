@@ -102,7 +102,7 @@ def login(tcp_handler, received_data: bytes):
 
     auth_token: str = secrets.token_hex(nbytes=80)
     auth_token_hashed: bytes = bcrypt.hashpw(auth_token.encode('utf8'), (bcrypt.gensalt()))
-    user_found: bool = authenticate_login(db, cursor, username, password.encode('utf8'), auth_token_hashed)
+    user_found: bool = authenticate_login(username, password.encode('utf8'), auth_token_hashed)
 
     if not user_found:
         print('That user does not exist')
@@ -114,7 +114,7 @@ def login(tcp_handler, received_data: bytes):
         tcp_handler.usernames.append(username)
 
         if color != '#ffffff':
-            change_color(db, cursor, username, color)
+            change_color(username, color)
 
         new_token = secrets.token_urlsafe(32)
         tcp_handler.valid_tokens.append(new_token)
@@ -162,7 +162,7 @@ def signup(tcp_handler, received_data):
             hashed_password: bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
             print(f'HASED_PWD: {hashed_password}')
 
-            register_user(db, cursor, username, hashed_password)
+            register_user(username, hashed_password)
 
         send_301(tcp_handler, 'http://localhost:8080/signin')
         print('REDIRECT WAS SENT')

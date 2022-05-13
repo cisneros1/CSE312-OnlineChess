@@ -8,7 +8,7 @@ from get import *
 from database import *
 from post import *
 from frame_parser import parse_frame, build_frame
-from stored_users import authenticated_users, web_socket_connections
+from stored_users import *
 import time
 
 
@@ -143,13 +143,24 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             sys.stderr.flush()
 
     def handle_game_connection(self, username):
-        print(f"\r\nUpgraded to websocket connection on instance {self} with user {username}\r\n")
+        print(f"\r\nUpgraded to websocket game connection  with user {username}\r\n")
+        connected_sockets[username] = self
+
+        set_username = {'messageType': 'setUsername', 'username': username}
+        set_username = json.dumps(set_username)
+        set_username_frame = build_frame(set_username, 129)
+        self.request.sendall(set_username_frame)
+        print('test 2')
 
         while True:
             data = self.request.recv(1024)
-            # print(str(data))
             if data != b'':
-                payload: bytearray = parse_frame(self, data)  # This function parses the frame
+                try:
+                    payload: bytearray = parse_frame(self, data)  # This function parses the frame
+                except Exception as e:
+                    print('Got error {e} during parsing of frames')
+                    continue
+                print(f'payload = {payload}')
                 # TODO - How do we handle a disconnect request?
                 if payload == b'disconnect':
                     print(f'\r\nDisconnecting\r\n')
@@ -164,21 +175,37 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     continue
                 print(f"Payload = {payload} on connect users")
                 message_type = message['messageType']
-                user_conn: MyTCPHandler = connected_sockets[username]
-                connected_user: str = connected_users[username]
-                connected_user_conn: MyTCPHandler = connected_users[1]
+                user_conn: MyTCPHandler = connected_sockets.get(username)  # the connection of this user
+                connected_user: list = connected_users.get(username)  # the name of the connected user
+                if user_conn is None or connected_user is None:
+                    continue
+                print(
+                    f'\r\nuser_conn = {user_conn} connected user = {connected_user} connected_sockets = {connected_sockets} connected_users = {connected_users}')
+                try:
+                    other_username = connected_user[1]
+                except Exception as e:
+                    print(f'Got exception {e}')
+                    sys.stdout.flush()
+                    sys.stderr.flush()
+                    continue
+
+                other_user_connection: MyTCPHandler = connected_sockets.get(other_username)
                 send_opcode = 129
+                sys.stdout.flush()
+                sys.stderr.flush()
+                if other_user_connection is None:
+                    continue
 
                 if message_type == 'chatMessage':
                     response = {'messageType': 'chatMessage', 'username': username,
-                                'comment': escape_html(message)}
+                                'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
+                    print(f'response in connect users is {response}')
                     response_frame = build_frame(response, send_opcode)
-                    if user_conn and connected_user:
-                        user_conn.request.sendall(response_frame)
-                        connected_user_conn.request.sendall(response_frame)
-                    else:
-                        print(f'\r\nError handling connected users chat messages.')
+                    user_conn.request.sendall(response_frame)
+                    other_user_connection.request.sendall(response_frame)
+            sys.stdout.flush()
+            sys.stderr.flush()
 
     def handle(self):
         while True:

@@ -24,20 +24,11 @@ function sendMessage() {
 
 
     chatBox.focus();
-    if (comment !== "" && !file.includes(".jpg")) {
+    if (comment !== "") {
         // TODO: Handle images and text from user uploads
         console.log('Sending a Normal Message');
         console.log(comment)
         socket.send(JSON.stringify({'messageType': 'chatMessage', 'comment': comment}));
-    } else if (comment === "" && file.includes(".jpg")) {
-        console.log('Sending Image only');
-        console.log(file);
-        socket.send(JSON.stringify({'messageType': 'imageMessage', 'comment': comment}));
-    } else {
-        console.log('Sending text and image in message');
-        console.log(comment)
-        console.log(file);
-        socket.send(JSON.stringify({'messageType': 'chatImageMessage', 'comment': comment}));
     }
 }
 

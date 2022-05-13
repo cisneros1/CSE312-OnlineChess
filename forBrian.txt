@@ -11,5 +11,5 @@ Things to take note of
 Things to work on:
 1. Create a normal chatbox multi-part form like in homework 2 that can handle images. A websocket connection won't cut it
 2. I'll try to get websocket messages working on '/connect_socket' then I'll hook up it to the chess engine
-3. Look for html, javascript and mysql vulnerability. We could get a 0 if we leave any vulnerabilities here
+3. Look for html, javascript and mysql vulnerabilities. We could get a 0 if we leave any vulnerabilities here
     * REMOVE ANY PRINT STATEMENTS RELATED TO AUTHENTICATION TOKEN AND PASSWORD
