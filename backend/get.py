@@ -46,7 +46,7 @@ def handle_get(self, received_data):
         websocket(self, received_data)
 
     elif path == '/connect_socket':
-        pass
+        connect_user(self, received_data)
 
     elif path == '/chat-history':
         chat(self, received_data)
@@ -59,6 +59,12 @@ def handle_get(self, received_data):
 
     elif path == '/Chess/ChessEngine.js':
         chess_engine(self)
+
+    elif path == '/Chess/ChessEngineOnline.js':
+        chess_engine_online(self)
+
+    elif path == '/game.js':
+        game_javascript(self)
 
 
     elif path.startswith('/game_'):
@@ -78,11 +84,17 @@ def handle_get(self, received_data):
         print('Unrecognized Request, sending 404')
 
 
+# /game.html
+# /game_sender_receiver
 def in_game(self, received_data, path):
-    print(f'\r\n------------- Starting a game for path ={path} -------------\r\n')
+    print(f'\r\n--------------------- Starting a game for path ={path} ------------------------\r\n')
     file_path = file_paths(self)
     path, headers, content = parse_request(received_data)
     template_dict = {'user': 'guest'}  # this will be fed into the template engine
+    # Associate the two users
+    i, sender, receiver = path.split('_')
+    connected_users[sender.strip()] = ['sender', receiver.strip()]
+    connected_users[receiver.strip()] = ['receiver', receiver.strip()]
 
     set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))  # Get the cookie header.
     authenticated_user = ''
@@ -98,6 +110,7 @@ def in_game(self, received_data, path):
                 user_token: bytes = directive_content.strip()
                 auth_token = user_token
                 authenticated_user = is_authenticated(db, cursor, user_token)
+            print(f"authenticated user = {authenticated_user} in game.html")
             if authenticated_user:
                 template_dict['user'] = escape_html(str(authenticated_user))
     if authenticated_user:
@@ -226,13 +239,32 @@ def websocket(self, received_data):
 
 
 def connect_user(self, received_data):
+    print('\r\n--------- Started connect users websocket upgrade -------------\r\n')
+    path, headers, content = parse_request(received_data)
+    set_cookies = list(filter(lambda tuple_val: tuple_val[0] == b'Cookie', headers))
+    authenticated = ''
+    if set_cookies:
+        header_content_list = set_cookies[0][1].split(b';')
+        for directive in header_content_list:
+            if b'=' not in directive:
+                continue
+            directive_name, directive_content = directive.split(b'=')
+            directive_name = directive_name.strip()
+            if directive_name == b'homepage_cookie':
+                visits = int(directive_content.strip()) + 1
+            elif directive_name == b'user':
+                user_token: bytes = directive_content.strip()
+                print('Checking token: ' + str(user_token))
+                authenticated = is_authenticated(db, cursor, user_token)  # Check query token with hash
+    if authenticated:
+        connected_users[authenticated] = self
     key = received_data.split(b'Sec-WebSocket-Key: ')[1]
     key = key.split(b'\r\n')[0]
     key += b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     return_key = hashlib.sha1(key).digest()
     return_key = base64.b64encode(return_key)
     send_101(self, return_key)
-    self.handle_game_connection()
+    self.handle_game_connection(authenticated)
 
 
 def chat(self, received_data):
@@ -271,11 +303,34 @@ def javascript(self):
     send_200(self, len(body), mimetype, body)
 
 
+def game_javascript(self):
+    mimetype = 'application/javascript; charset=utf-8'
+    file_path = file_paths(self)
+    filename = str(file_path["game.js"])
+    body = ''
+
+    with open(filename, 'rb') as content:
+        body = content.read()
+    send_200(self, len(body), mimetype, body)
+
+
 # path = '/Chess/ChessEngine.js'
 def chess_engine(self):
     mimetype = 'application/javascript; charset=utf-8'
     file_path = file_paths(self)
     filename = str(file_path["/Chess/ChessEngine.js"])
+    body = ''
+    with open(filename, 'rb') as content:
+        body = content.read()
+
+    send_200(self, len(body), mimetype, body)
+
+
+# path = '/Chess/ChessEngineOnline.js'
+def chess_engine_online(self):
+    mimetype = 'application/javascript; charset=utf-8'
+    file_path = file_paths(self)
+    filename = str(file_path["/Chess/ChessEngineOnline.js"])
     body = ''
     with open(filename, 'rb') as content:
         body = content.read()

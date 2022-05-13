@@ -142,7 +142,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             sys.stdout.flush()
             sys.stderr.flush()
 
-    def handle_game_connection(self):
+    def handle_game_connection(self, username):
+        print(f"\r\nUpgraded to websocket connection on instance {self} with user {username}\r\n")
+
         while True:
             data = self.request.recv(1024)
             # print(str(data))
@@ -160,7 +162,14 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 except Exception as e:
                     print(e)
                     continue
-                print(f"Payload = {payload}")
+                print(f"Payload = {payload} on connect users")
+
+                user_conn = connected_sockets[username]
+                connected_user = connected_users[username]
+                response = "some response"
+                opcode = 129
+                response_frame = build_frame(response, opcode)
+                connected_user.request.sendall(response_frame)
 
     def handle(self):
         while True:

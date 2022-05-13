@@ -211,11 +211,15 @@ def retrieve_users(cursor, db):
 
 
 def retrieve_chathistory(cursor, db):
-    query = "SELECT json_message FROM users"
-    cursor.execute(query)
-    all_users = cursor.fetchall()
-    json_messages = []
-    for a_user in all_users:
-        message = json.loads(a_user[0])
-        json_messages.append(message)
-    return json_messages
+    try:
+        query = "SELECT json_message FROM users"
+        cursor.execute(query)
+        all_users = cursor.fetchall()
+        json_messages = []
+        for a_user in all_users:
+            message = json.loads(a_user[0])
+            json_messages.append(message)
+        return json_messages
+    except Exception as e:
+        print(f'\r\nGot error {e} in retrieve_chathistory')
+        return []

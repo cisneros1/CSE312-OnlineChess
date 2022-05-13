@@ -26,7 +26,7 @@ def file_paths(self):
             "functions.js": '/root/frontend/functions.js',
             "game.js": '/root/frontend/game.js',
             "/Chess/ChessEngine.js": '/root/Chess/ChessEngine.js',
-
+            "/Chess/ChessEngineOnline.js": '/root/Chess/ChessEngineOnline.js',
             "imagefolder": '/root/frontend/image/',
             "favicon": '/root/frontend/favicon.ico'
         }

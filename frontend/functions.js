@@ -282,12 +282,8 @@ function connectWebRTC() {
 
 
 function welcome() {
-    document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
+    document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀";
     get_chat_history();
-
-    // const tokenLoad = document.getElementById("xsrf_token");
-    // token = tokenLoad.value;
-    // console.log(token);
 }
 
 
