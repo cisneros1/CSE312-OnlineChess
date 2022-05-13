@@ -163,13 +163,22 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     print(e)
                     continue
                 print(f"Payload = {payload} on connect users")
+                message_type = message['messageType']
+                user_conn: MyTCPHandler = connected_sockets[username]
+                connected_user: str = connected_users[username]
+                connected_user_conn: MyTCPHandler = connected_users[1]
+                send_opcode = 129
 
-                user_conn = connected_sockets[username]
-                connected_user = connected_users[username]
-                response = "some response"
-                opcode = 129
-                response_frame = build_frame(response, opcode)
-                connected_user.request.sendall(response_frame)
+                if message_type == 'chatMessage':
+                    response = {'messageType': 'chatMessage', 'username': username,
+                                'comment': escape_html(message)}
+                    response = json.dumps(response)
+                    response_frame = build_frame(response, send_opcode)
+                    if user_conn and connected_user:
+                        user_conn.request.sendall(response_frame)
+                        connected_user_conn.request.sendall(response_frame)
+                    else:
+                        print(f'\r\nError handling connected users chat messages.')
 
     def handle(self):
         while True:

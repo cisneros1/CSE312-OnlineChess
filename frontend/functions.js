@@ -17,8 +17,8 @@ function sendMessage() {
     const chatBox = document.getElementById("chat-comment");
     const comment = chatBox.value;
 
-    const image_file = document.getElementById("form-file");
-    const file = image_file.value;
+    // const image_file = document.getElementById("form-file");
+    // const file = image_file.value;
 
     chatBox.value = "";
 
