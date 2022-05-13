@@ -98,6 +98,7 @@ def post_token(db, cursor, username: str, token: bytes):
         db.commit()
     except Exception as e:
         #print(f"Attempted to update token on username = {username}")
+        pass
 
 
 def change_color(db, cursor, username: str, color: str):
@@ -137,7 +138,7 @@ def authenticate_login(db, cursor, username: str, password, token):
         row = cursor.fetchone()
         if row:
             stored_password = row[0]
-            print(f'Stored Password: {stored_password}')
+            # print(f'Stored Password: {stored_password}')
 
             if (isinstance(stored_password, bytes) or isinstance(stored_password, bytearray)):
                 if bcrypt.checkpw(password, stored_password):
@@ -175,7 +176,7 @@ def register_user(db, cursor, username: str, password: bytes):
 
     else:
         try:
-            print(f"Insert a new user. username = {username} and pass = {password}")
+            # print(f"Insert a new user. username = {username} and pass = {password}")
             query = "INSERT INTO registered_users (username, password, color, auth_token) VALUES (%s, %s, %s, %s)"
             values = (username, password, "white", b'')
             cursor.execute(query, values)
