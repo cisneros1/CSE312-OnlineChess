@@ -164,6 +164,7 @@ class Piece {
 
         // Dimensions of the piece
         chess_grid[this.grid_y][this.grid_x] = piece_name;  // grid[y][x] = 'b_pawn'
+
     }
 
     display_piece(context, cursor_pos = null) {
@@ -701,6 +702,8 @@ const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
 console.log("Board Width: " + board_size);
 let all_pieces = setup();    // Do not change this.
+console.log('chess grid is currently');
+console.log(chess_grid);
 const game_state = new GameState(chess_grid, all_pieces);
 
 // Send the chess over to the other user

@@ -68,34 +68,34 @@ function addUser(user) {
     // div for one user
     let escaped_user = escape_html(user);
     const user_div = document.createElement("div");
-    user_div.id = `div_${user}`;
+    user_div.id = `div_${escaped_user}`;
 
     // chat box for a user. format is:
     // <label for="chat-comment">Chat: </label>
     // <input id="chat-comment" type="text" name="comment">
     // <button onclick="sendMessage()">Send</button>
     const label = document.createElement("label");
-    label.for = `${user}_chat`;
-    label.innerText = `MESSAGE ${user}: `;
+    label.for = `${escaped_user}_chat`;
+    label.innerText = `MESSAGE ${escaped_user}: `;
     user_div.innerHTML += label.outerHTML;
 
     // The input field for DMing
     const chat_box = document.createElement("input");
     chat_box.type = "text";
-    chat_box.id = `${user}_chat`;
+    chat_box.id = `${escaped_user}_chat`;
     chat_box.name = "message";
     user_div.innerHTML += chat_box.outerHTML;
 
     // Send DM button
     const send_button = document.createElement("button");
     send_button.innerText = "Direct Message";
-    send_button.setAttribute('onclick', `sendDM('${user}')`);
+    send_button.setAttribute('onclick', `sendDM('${escaped_user}')`);
     user_div.innerHTML += send_button.outerHTML;
 
     // Send Challenge
     const challenge_button = document.createElement("button");
     challenge_button.innerText = "Challenge";
-    challenge_button.setAttribute('onclick', `sendChallenge('${user}')`);
+    challenge_button.setAttribute('onclick', `sendChallenge('${escaped_user}')`);
     user_div.innerHTML += challenge_button.outerHTML;
 
     console.log('HTML element: ' + user_div.outerHTML);

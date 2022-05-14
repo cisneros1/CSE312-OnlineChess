@@ -35,6 +35,8 @@ response:
 * Refresh the page after logging in into different accounts to see  them on the homepage.html
   * Users have the options to send a DM or 'challenge' them to a game of chess
 * 'Challenge a user to redirect both users to another page'
-  * 
+  * On this websocket users can send message to each other. Only these two users will be able to see each other messages.
+  * Users should also be able to play live chess. Simply click and let go of the piece. The user who got the notification get to make the first move. (currently does not work properly)
+* At this 'Challenge' page there is an option to start a webrtc chat
 
     
