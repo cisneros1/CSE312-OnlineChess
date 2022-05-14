@@ -1,4 +1,5 @@
 let socket = new WebSocket('ws://' + window.location.host + '/connect_socket');
+let username = '';
 
 // Allow users to send messages by pressing enter instead of clicking the Send button
 document.addEventListener("keypress", function (event) {
@@ -12,12 +13,7 @@ function sendMessage() {
     const chatBox = document.getElementById("chat-comment");
     const comment = chatBox.value;
 
-    // const image_file = document.getElementById("form-file");
-    // const file = image_file.value;
-
     chatBox.value = "";
-
-
     chatBox.focus();
     if (comment !== "") {
         // TODO: Handle images and text from user uploads
@@ -52,15 +48,31 @@ socket.onmessage = function (ws_message) {
     console.log('Got message: ' + ws_message.data)
 
     switch (messageType) {
+        case 'setUsername':
+            username = message['username'];
+            break;
+
         case 'chatMessage':
             console.log('got a chat message')
             addMessage(message);
             break;
 
         case 'startGame':
+            if (!game_state.game_started) {
+                console.log("Starting a chess.")
+                let is_challenger = message['challenger'];
+                if (is_challenger) {
+                    game_state.startGame('black', false);
+                } else {
+                    game_state.startGame('white', true);
+                }
+            }
+
             break;
 
         case 'chessMove':
+            console.log('got a chess move message');
+            receivedChessMove(message);
             break;
 
         case 'webRTC-offer':
@@ -233,9 +245,10 @@ class Piece {
         cur_y += offset_y;
         while (within_grid(cur_y, cur_x) && grid[cur_y][cur_x] === ' ') {
             this.moves.push([cur_y, cur_x]);
+            cur_x += offset_x;
+            cur_y += offset_y;
         }
         if (within_grid(cur_y, cur_x) && grid[cur_y][cur_x].startsWith(opposite_color)) {
-            this.moves.push([cur_y, cur_x]);
             this.attack_moves.push([cur_y, cur_x]);
         }
     }
@@ -267,6 +280,8 @@ class Pawn extends Piece {
     // TODO - Update to include en passant moves. Untested.
     generateMoves(grid) {
         // Offset values. y, x, can_capture
+        this.moves = [];
+        this.attack_moves = [];
         let flip_y = this.color === 'white' ? 1 : -1;
         let moves = [[-1 * flip_y, 0, false]];   // An offset from the current position. For black side multiply y by -1.
         let opposite_color = this.color === 'white' ? 'black' : 'white';
@@ -304,6 +319,8 @@ class Bishop extends Piece {
     }
 
     generateMoves(grid) {
+        this.moves = [];
+        this.attack_moves = [];
         // Check upper-left
         this.generateMovesMany(grid, [-1, -1]);
         // Check upper-right
@@ -322,6 +339,8 @@ class Knight extends Piece {
 
     // TODO - Untested.
     generateMoves(grid) {
+        this.moves = [];
+        this.attack_moves = [];
         let moves = [[-1, 2], [-2, -1], [-2, 1], [-1, 2], [1, -2], [2, -1], [2, 1], [1, 2]] // List of offset from the current grid position.
         for (let move of moves) {
             let offset_y = this.grid_y + move[0];
@@ -343,6 +362,8 @@ class Queen extends Piece {
     }
 
     generateMoves(grid) {
+        this.moves = [];
+        this.attack_moves = [];
         // Check upper-left
         this.generateMovesMany(grid, [-1, -1]);
         // Check upper-right
@@ -368,6 +389,8 @@ class Rook extends Piece {
     }
 
     generateMoves(grid) {
+        this.moves = [];
+        this.attack_moves = [];
         // Check left
         this.generateMovesMany(grid, [0, -1]);
         // Check up
@@ -386,6 +409,8 @@ class King extends Piece {
     }
 
     generateMoves(grid) {
+        this.moves = [];
+        this.attack_moves = [];
         let moves = [[-1, -1], [-1, 1], [1, -1], [1, 1], [0, -1], [-1, 0], [0, 1], [1, 0]];
         for (let move of moves) {
             let offset_y = this.grid_y + move[0];
@@ -407,6 +432,7 @@ class GameState {
     constructor(grid, pieces, your_turn) {
         this.grid = grid;
         console.log(copy2d(this.grid));
+        console.log('initializing game_state with pieces ' + pieces)
 
         this.pieces = pieces;
         this.cursor_x = 0;
@@ -422,7 +448,10 @@ class GameState {
         });
         // TODO - This will need to be changed at some point. Websocket stuff
         this.generateAllMoves();
-        this.game_started = true;
+        // this.filterMoves();
+        console.log("On game state initialization: chess board is now ");
+        console.log(this.grid);
+        this.game_started = false;
         this.your_turn = your_turn;
         this.in_check = false;
         this.player_color = ''; // Will be set to 'white' or 'black'
@@ -436,27 +465,49 @@ class GameState {
             // If a piece was clicked. The empty string is falsy.
             if (square_clicked) {
                 let piece_clicked = gridtoPiece(square_clicked[0], square_clicked[1], instance.grid);
-                if (piece_clicked) {
+                if (piece_clicked && piece_clicked.color === instance.player_color && instance.your_turn) {
                     piece_clicked.clicked = true;
                 }
             }
         });
         // Listen for mouse release. This is where we make a chess move
         window.addEventListener('mouseup', function (e) {
-            // Set all pieces to the un-clicked state.
+            // Set all pieces to the un-clicked state and make a move if applicable
             instance.last_clicked = [0, 0];
-            // TODO - This line is causing issues :(
-            // let piece_clicked = this.all_pieces.find(piece => piece.clicked === true);
-            // if (instance.your_turn && piece_clicked) {
-            //     ;
-            // }
-            for (let piece of instance.pieces) {
+
+            let square_clicked = coordToGrid(e.offsetX, e.offsetY);
+            for (const piece of instance.pieces) {
+                if (piece.clicked && square_clicked && instance.your_turn && instance.game_started) {
+                    if (instance.madeValidMove(piece, square_clicked)) {
+                        instance.your_turn = false;
+                        piece.has_moved = true;
+                        sendMove(piece, [piece.grid_y, piece.grid_x], square_clicked);
+                        instance.MakeMove(piece, square_clicked);
+                    }
+                }
                 piece.clicked = false;
             }
         });
         console.log("Created Game State");
         // Begin main loop
         this.updateGame();
+    }
+
+    // Check if a valid move is being made
+    madeValidMove(piece, move_made) {
+        for (const move of piece.moves) {
+            if (move[0] === move_made[0] && move[1] === move_made[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    startGame(color, your_turn) {
+        this.game_started = true;
+        this.player_color = color;
+        this.your_turn = your_turn;
     }
 
     // Returns true if your king is in check
@@ -479,23 +530,54 @@ class GameState {
     // TODO - finish this method
     filterMoves() {
         let saved_board = this.saveBoardState();
+        console.log('Saved board state');
+        console.log(saved_board.grid);
+        let piece_state_moves = new Map();
+        let piece_state_capture_moves = new Map();
+
         let player_pieces = this.pieces.filter(piece => piece.color === this.player_color);
+        console.log("Filtering " + player_pieces.length + " pieces with color " + this.player_color);
         for (let piece of player_pieces) {
+            // TODO - change this line?
+            if (piece.captured){
+                continue;
+            }
             let filtered_moves = [];
             let filtered_capture_moves = [];
+
             for (const move of piece.moves) {
                 this.MakeMove(piece, move);
                 this.generateAllMoves();
-                let in_check = this.in_check();
+                let in_check = this.inCheck();
                 if (!in_check) {
                     filtered_moves.push(move);
-                    filtered_capture_moves.push(move);
+                } else {
+                    console.log('filtered move on grid ' + this.grid);
                 }
                 this.loadBoardState(saved_board);
             }
-            piece.moves = filtered_moves;
-            piece.attack_moves = filtered_capture_moves;
+
+            for (const move of piece.attack_moves) {
+                this.MakeMove(piece, move);
+                this.generateAllMoves();
+                let in_check = this.inCheck();
+                if (!in_check) {
+                    filtered_capture_moves.push(move);
+                } else {
+                    console.log('filtered move on grid ' + this.grid);
+                }
+                this.loadBoardState(saved_board);
+            }
+            piece_state_moves.set(piece, filtered_moves);
+            piece_state_capture_moves.set(piece, filtered_capture_moves);
         }
+        for (const piece of player_pieces){
+            piece.move = piece_state_moves.get(piece);
+            piece.attack_moves = piece_state_capture_moves.get(piece);
+        }
+        console.log('Saved board state is now');
+        console.log(saved_board.grid);
+
     }
 
     // This method will make a move.
@@ -523,7 +605,10 @@ class GameState {
     // Saves the state of the entire board.
     saveBoardState() {
         let board_state = {
-            grid: copy2d(this.grid), in_check: this.in_check, your_turn: this.your_turn, piece_states: new Map()
+            grid: copy2d(this.grid),
+            in_check: this.in_check,
+            your_turn: this.your_turn,
+            piece_states: new Map()
         }
         for (let piece of this.pieces) {
             let piece_state = {
@@ -572,6 +657,7 @@ class GameState {
         for (let piece of this.pieces) {
             if (!piece.captured) {
                 piece.generateMoves(this.grid);
+                // console.log(`piece ${piece.piece_name} on [${piece.grid_y}, ${piece.grid_x}] has moves ${piece.moves}`);
             }
         }
     }
@@ -592,7 +678,7 @@ class GameState {
         clearBoard();
         this.displayAllMoves();
         this.displayAllPieces();
-        let offset = square_size / 2;
+        // let offset = square_size / 2;
         // this.context.fillRect(this.cursor_x - offset, this.cursor_y - offset, square_size, square_size);
         // console.log("Cursor X: " + this.cursor_x + " Cursor Y: " + this.cursor_y);
         // console.log(coordToGrid(this.cursor_x, this.cursor_y));
@@ -610,8 +696,37 @@ const piece_dim = [65, 65];     // width and height of each piece
 const square_size = 74;
 const top_left_coord = [154, 154];  // y, x coordinate of where the chess board squares starts at the upper-left
 console.log("Board Width: " + board_size);
-let all_pieces = [];    // Do not change this.
+let all_pieces = setup();    // Do not change this.
+const game_state = new GameState(chess_grid, all_pieces);
 
+// Send the chess over to the other user
+function sendMove(piece, prev_location, move) {
+    let message = {
+        "messageType": "chessMove",
+        "piece_moved": piece.piece_name,
+        "prev_location": prev_location,
+        "move": move
+    };
+    socket.send(JSON.stringify(message));
+}
+
+function receivedChessMove(chess_message) {
+    console.log('chess board was ');
+    console.log(game_state.grid);
+    let piece_name = chess_message['piece_moved'];
+    let prev_loc = chess_message['prev_location'];
+    let move = chess_message['move'];
+    console.log('Received chess move: ' + JSON.stringify(chess_message));
+    let piece_moved = gridtoPiece(prev_loc[0], prev_loc[1], game_state.grid);
+    piece_moved.has_moved = true;
+    game_state.MakeMove(piece_moved, move);
+    // Generate new moves
+    game_state.generateAllMoves();
+    game_state.filterMoves();
+    game_state.your_turn = true;
+    console.log('chess board is now ');
+    console.log(game_state.grid)
+}
 
 // Display a chess on the board
 function displayImage(piece_name, x, y, height, width) {
@@ -692,24 +807,21 @@ function clearAll(context) {
 }
 
 
-// function startGame() {
-//     console.log("Started a game.")
-//     socket = new WebSocket('ws://' + window.location.host + '/connect_socket');
-//     game_started = true;
+// window.onload = function () {
+//     console.log('loaded chess online')
+//     setup();
 // }
-window.onload = function () {
-    console.log('loaded chess online')
-    setup();
-}
 
 function setup() {
     console.log("Called setup()");
     clearBoard();    // Display the board
+    let pieces_list = [];
     // Begin initializing the chess pieces
     for (let i = 0; i < 8; i++) {
         let white_pawn = new Pawn('w_pawn', [6, i]);
         let black_pawn = new Pawn('b_pawn', [1, i]);
-        all_pieces = all_pieces.concat([white_pawn, black_pawn]);
+        // all_pieces = all_pieces.concat([white_pawn, black_pawn]);
+        pieces_list = pieces_list.concat([white_pawn, black_pawn]);
         if (i === 0) {
             let white_rook = new Rook('w_rook', [7, 0]);
             let black_rook = new Rook('b_rook', [0, 0]);
@@ -725,7 +837,8 @@ function setup() {
 
             let white_queen = new Queen('w_queen', [7, 4]);
             let black_queen = new Queen('b_queen', [0, 4]);
-            all_pieces = all_pieces.concat([white_rook, black_rook, white_knight, black_knight, white_bishop, black_bishop, white_king, black_king, white_queen, black_queen]);
+            // all_pieces = all_pieces.concat([white_rook, black_rook, white_knight, black_knight, white_bishop, black_bishop, white_king, black_king, white_queen, black_queen]);
+            pieces_list = pieces_list.concat([white_rook, black_rook, white_knight, black_knight, white_bishop, black_bishop, white_king, black_king, white_queen, black_queen]);
         }
         if (i === 1) {
             let white_bishop = new Bishop('w_bishop', [7, 5]);
@@ -736,8 +849,9 @@ function setup() {
 
             let white_rook = new Rook('w_rook', [7, 7]);
             let black_rook = new Rook('b_rook', [0, 7]);
-            all_pieces = all_pieces.concat([white_bishop, black_bishop, white_knight, black_knight, white_rook, black_rook]);
+            // all_pieces = all_pieces.concat([white_bishop, black_bishop, white_knight, black_knight, white_rook, black_rook]);
+            pieces_list = pieces_list.concat([white_bishop, black_bishop, white_knight, black_knight, white_rook, black_rook]);
         }
     }
-    let game_state = new GameState(chess_grid, all_pieces);
+    return pieces_list;
 }

@@ -1,14 +1,13 @@
 # import backend.database as db
 from backend.database import *
 import secrets, bcrypt, random
+from parsers import Request
 
 # from template_engine import *
 from backend.template_engine import *
 from backend.generate_response import *
 from backend.filepaths import *
 from stored_users import *
-
-
 
 
 def handle_post(tcp_handler, received_data):
@@ -41,20 +40,24 @@ def handle_post(tcp_handler, received_data):
 
 
 def postImage(tcp_handler, received_data: bytes, path: str):
+    # Get username, and generate random id for image
+    username = path.split('_')[1]
+    unique_id = random.randint(0, 10000)
+    unique_path = f'/root/backend/images/{username}_{unique_id}'
 
-    user = path.split('_')[1]
-    unique_id = random.randomint(0,1000)
-    unique_path = f'/root/backend/images/{user}_{unique_id}'
+    # Parse received_data to get Body of image
+    image_parsed = Request(received_data)
+    image_body = image_parsed.body()
 
-    # Parse received_data to get
-
-
-
-
-
+    # Look for file and save to server
     with open(unique_path, 'wb') as img:
-        img.write()
+        img.write(image_body)
 
+    # Save to database
+    insert_image(unique_path, username)
+
+    # Send 201 Created
+    send_201(tcp_handler)
 
 
 

@@ -286,7 +286,7 @@ def connect_user(self, received_data):
 def chat(self, received_data):
     # Returns list of comments stored in the database
     print('\r\n------------- /chat-history ------------\r\n')
-    chat_array = retrieve_chathistory(cursor, db)
+    chat_array = retrieve_chathistory()
     print(f"\r\nCurrent chat history are {chat_array}\r\n")
     json_array = json.dumps(chat_array)
     send_200(self, len(json_array), 'application/json', json_array.encode())

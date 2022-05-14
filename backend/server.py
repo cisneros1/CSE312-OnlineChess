@@ -82,7 +82,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response = {'messageType': 'chatMessage', 'username': username,
                                 'comment': escape_html(message['comment'])}
                     response = json.dumps(response)
-                    add_user(username, response, cursor, db)  # Store on database
+                    add_user(username, response)  # Store on database
 
                     send_opcode = 129
                     response_frame = build_frame(response, send_opcode)
@@ -137,14 +137,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     else:
                         print("\r\n3. Recipient was disconnected.\r\n")
 
-                elif message_type == 'chessMessage':
-                    pass
             sys.stdout.flush()
             sys.stderr.flush()
 
     def handle_game_connection(self, username):
-        print(f"\r\nUpgraded to websocket game connection  with user {username}\r\n")
+        print(f"\r\n 1. -------- Upgraded to websocket game connection  with user {username} ---------\r\n")
         connected_sockets[username] = self
+        send_opcode = 129
 
         set_username = {'messageType': 'setUsername', 'username': username}
         set_username = json.dumps(set_username)
@@ -155,11 +154,49 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         while True:
             data = self.request.recv(1024)
+
+            user_conn: MyTCPHandler = connected_sockets.get(username)  # the connection of this user
+            connected_user: list = connected_users.get(username)  # the name of the connected user
+            if user_conn is None or connected_user is None:
+                print('No connections available')
+                continue
+            try:
+                other_username = connected_user[1]
+            except Exception as e:
+                print(f'Got exception {e}')
+                sys.stdout.flush()
+                sys.stderr.flush()
+                continue
+
+            other_user_connection: MyTCPHandler = connected_sockets.get(other_username)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            if other_user_connection is None:
+                print('other user is not connected')
+                continue
+
+            # Start the chess game
+            if not game_start:
+                print('Sending start game message')
+                sender_response = {'messageType': 'startGame', 'challenger': True}
+                receiver_response = {'messageType': 'startGame', 'challenger': False}
+
+                sender_response = json.dumps(sender_response)
+                receiver_response = json.dumps(receiver_response)
+
+                sender_frame = build_frame(sender_response, send_opcode)
+                receiver_frame = build_frame(receiver_response, send_opcode)
+
+                user_conn.request.sendall(sender_frame)
+                other_user_connection.request.sendall(receiver_frame)
+
+                game_start = True
+
             if data != b'':
                 try:
                     payload: bytearray = parse_frame(self, data)  # This function parses the frame
                 except Exception as e:
-                    print('Got error {e} during parsing of frames')
+                    print(f'Got error {e} during parsing of frames')
                     continue
                 print(f'payload = {payload}')
                 # TODO - How do we handle a disconnect request?
@@ -176,38 +213,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     continue
                 print(f"Payload = {payload} on connect users")
                 message_type = message['messageType']
-                user_conn: MyTCPHandler = connected_sockets.get(username)  # the connection of this user
-                connected_user: list = connected_users.get(username)  # the name of the connected user
-                if user_conn is None or connected_user is None:
-                    continue
-                print(
-                    f'\r\nuser_conn = {user_conn} connected user = {connected_user} connected_sockets = {connected_sockets} connected_users = {connected_users}')
-                try:
-                    other_username = connected_user[1]
-                except Exception as e:
-                    print(f'Got exception {e}')
-                    sys.stdout.flush()
-                    sys.stderr.flush()
-                    continue
 
-                other_user_connection: MyTCPHandler = connected_sockets.get(other_username)
-                send_opcode = 129
-                sys.stdout.flush()
-                sys.stderr.flush()
-                if other_user_connection is None:
-                    continue
-
-                # Start the chess game
-                if not game_start:
-                    sender_response = {'messageType': 'startGame', 'challenger': True}
-                    receiver_response = {'messageType': 'startGame', 'challenger': False}
-
-                    sender_response = json.dumps(sender_response)
-                    receiver_response = json.dumps(receiver_response)
-
-                    sender_frame = build_frame(sender_response, send_opcode)
-
-                    game_start = True
+                # print(
+                #     f'\r\nuser_conn = {user_conn} connected user = {connected_user} connected_sockets = {connected_sockets} connected_users = {connected_users}')
 
                 if message_type == 'chatMessage':
                     response = {'messageType': 'chatMessage', 'username': username,
@@ -217,6 +225,16 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response_frame = build_frame(response, send_opcode)
                     user_conn.request.sendall(response_frame)
                     other_user_connection.request.sendall(response_frame)
+
+                if message_type == 'chessMove':
+
+                    response = {"messageType": "chessMove", "piece_moved": message['piece_moved'],
+                                "prev_location": message['prev_location'], "move": message['move']}
+                    response = json.dumps(response)
+                    print(f'Sending payload={payload} and response={response}')
+                    response_frame = build_frame(response, send_opcode)
+                    other_user_connection.request.sendall(response_frame)
+
             sys.stdout.flush()
             sys.stderr.flush()
 
