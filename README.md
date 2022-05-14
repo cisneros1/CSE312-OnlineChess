@@ -31,6 +31,10 @@ response:
             if valid
                 sends 'POST /login' with username token -> NO AUTHENTICATION TOKEN HERE
                 POST Response :: Re routes user back to /signin
-
+* Users can save the background color which is picked on the signup page.
+* Refresh the page after logging in into different accounts to see  them on the homepage.html
+  * Users have the options to send a DM or 'challenge' them to a game of chess
+* 'Challenge a user to redirect both users to another page'
+  * 
 
     

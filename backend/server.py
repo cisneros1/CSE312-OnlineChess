@@ -137,6 +137,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     else:
                         print("\r\n3. Recipient was disconnected.\r\n")
 
+
+
             sys.stdout.flush()
             sys.stderr.flush()
 
@@ -226,7 +228,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     user_conn.request.sendall(response_frame)
                     other_user_connection.request.sendall(response_frame)
 
-                if message_type == 'chessMove':
+                elif message_type == 'chessMove':
 
                     response = {"messageType": "chessMove", "piece_moved": message['piece_moved'],
                                 "prev_location": message['prev_location'], "move": message['move']}
@@ -234,6 +236,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     print(f'Sending payload={payload} and response={response}')
                     response_frame = build_frame(response, send_opcode)
                     other_user_connection.request.sendall(response_frame)
+
+                elif message_type.startswith('webRTC-'):
+                    try:
+                        frame = build_frame(payload.decode(), 129)
+                        print(f"Sending frame of size {len(frame)} with message type {message_type}")
+                        other_user_connection.request.sendall(frame)
+                    except Exception as e:
+                        print(e)
+                        continue
 
             sys.stdout.flush()
             sys.stderr.flush()
