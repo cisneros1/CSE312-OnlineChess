@@ -431,7 +431,7 @@ class King extends Piece {
 class GameState {
     constructor(grid, pieces, your_turn) {
         this.grid = grid;
-        console.log(copy2d(this.grid));
+        console.log(this.grid);
         console.log('initializing game_state with pieces ' + pieces)
 
         this.pieces = pieces;
@@ -447,6 +447,7 @@ class GameState {
             instance.cursor_y = e.offsetY;
         });
         // TODO - This will need to be changed at some point. Websocket stuff
+        console.log(this.grid);
         this.generateAllMoves();
         // this.filterMoves();
         console.log("On game state initialization: chess board is now ");
@@ -582,6 +583,7 @@ class GameState {
 
     // This method will make a move.
     MakeMove(piece, move) {
+        console.log('Called make move.')
         let move_y = move[0];
         let move_x = move[1];
         this.grid[piece.grid_y][piece.grid_x] = ' ';
@@ -654,10 +656,12 @@ class GameState {
 
     // Debug method - Generate all moves
     generateAllMoves() {
+        console.log('called generateAllMoves')
         for (let piece of this.pieces) {
             if (!piece.captured) {
                 piece.generateMoves(this.grid);
-                // console.log(`piece ${piece.piece_name} on [${piece.grid_y}, ${piece.grid_x}] has moves ${piece.moves}`);
+                console.log(`piece ${piece.piece_name} on [${piece.grid_y}, ${piece.grid_x}] has moves ${piece.moves}`);
+                console.log(this.grid);
             }
         }
     }
