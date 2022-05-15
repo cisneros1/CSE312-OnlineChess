@@ -251,14 +251,17 @@ def register_user(username: str, password: bytes):
 # Add a user to the users table
 # {messageType, username, comment}
 def add_user(user_name: str, message: str):
+    db, cursor = create_connection(True)
     query = "INSERT INTO users (username, json_message) VALUES (%s, %s)"
     values = (user_name, message)
     cursor.execute(query, values)
     db.commit()
+    close_connection(db, cursor)
 
 
 # all users and their unique ids in a list
 def retrieve_users():
+    db, cursor = create_connection(True)
     query = "SELECT * FROM users"
     cursor.execute(query)
     all_users = cursor.fetchall()
@@ -271,10 +274,12 @@ def retrieve_users():
         user_id = a_user[3]
         print(f'Retrieving user {a_user} with color: {color}')
         user_array.append((user_name, user_message, color, user_id))
+    close_connection(db, cursor)
     return user_array
 
 
 def retrieve_chathistory():
+    db, cursor = create_connection(True)
     try:
         query = "SELECT json_message FROM users"
         cursor.execute(query)
@@ -283,6 +288,7 @@ def retrieve_chathistory():
         for a_user in all_users:
             message = json.loads(a_user[0])
             json_messages.append(message)
+        close_connection(db, cursor)
         return json_messages
     except Exception as e:
         print(f'\r\nGot error {e} in retrieve_chathistory')
