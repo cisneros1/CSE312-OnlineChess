@@ -119,7 +119,7 @@ function sendDM(user) {
     chat_box.value = '';
 
     socket.send(JSON.stringify({
-        'messageType': 'DirectMessage',
+        'messageType': 'DM',
         'comment': direct_message,
         'sender': username,
         'receiver': user
