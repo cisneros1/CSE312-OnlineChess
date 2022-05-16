@@ -130,6 +130,12 @@ function AcceptChallenge(challenger) {
     return confirm(`Accept a chess match from ${challenger}?`);
 }
 
+
+// function for the pop up dm
+function AcceptDM(sender) {
+    return confirm(`User ${sender} sent a DM`);
+}
+
 function get_online_users() {
     console.log('Getting Online Users');
     const request = new XMLHttpRequest();
@@ -197,12 +203,33 @@ socket.onmessage = function (ws_message) {
             }
 
             break;
-
+        
         case 'ChallengeAccepted':
             let challenger = message.sender;
             let challenged = message.receiver;
             window.location.replace(`/game_${challenger}_${challenged}`);
             break;
+
+
+        case 'DM' :
+            let dm_sender = message.sender;
+            let dm_receiver = message.receiver;;
+            if (AcceptDM(sender)) {
+                socket.send(JSON.stringify({
+                    'messageType': 'ChallengeAccepted',
+                    'sender': sender,
+                    'receiver': receiver
+                }));
+            }
+
+            break;
+        
+        case 'DMAccepted':
+            let dm_challenger = message.sender;
+            let dm_challenged = message.receiver;
+            console.log('DM was accepted')
+            break;
+
 
         case 'webRTC-offer':
             webRTCConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
