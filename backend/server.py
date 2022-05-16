@@ -89,12 +89,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     for connection in web_socket_connections.values():
                         connection.request.sendall(response_frame)
 
-                elif message_type == 'DirectMessage':
+                elif message_type == 'DM':
                     sender = message['sender']
                     receiver = message['receiver']
                     message = f'Received DM from {sender}: {message["comment"]}'
 
-                    response = {'messageType': 'chatMessage', 'username': username,
+                    response = {'messageType': 'DM', 'username': username,
                                 'comment': escape_html(message)}
                     response = json.dumps(response)
 

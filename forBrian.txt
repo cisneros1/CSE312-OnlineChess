@@ -1,0 +1,15 @@
+Things to take note of
+1. Currently, if you challenge a user then a notification should show up on the other user's browser
+2. Users are then redirected to the page starting with '/game_' (not /game)
+3. Right now I'm working with game.html and Chess/ChessEngineOnline.js
+    * ChessEngineOnline.js contains the entire chess engine, websocket stuff, webrtc, and addMessage functions
+        * If you're going to work on those files then make a separate branch.
+    * Once both users are connected they get added to the global 'connected_users' and 'connected_sockets'
+    * Both users will be connected to the '/connect_socket' websocket connection
+    * game.html and ChessEngineOnline.js are the main files being used once the challenge is accepted and both are redirected
+
+Things to work on:
+1. Create a normal chatbox multi-part form like in homework 2 that can handle images. A websocket connection won't cut it
+2. I'll try to get websocket messages working on '/connect_socket' then I'll hook up it to the chess engine
+3. Look for html, javascript and mysql vulnerabilities. We could get a 0 if we leave any vulnerabilities here
+    * REMOVE ANY PRINT STATEMENTS RELATED TO AUTHENTICATION TOKEN AND PASSWORD

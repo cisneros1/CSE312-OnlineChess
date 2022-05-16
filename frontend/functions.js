@@ -133,7 +133,7 @@ function AcceptChallenge(challenger) {
 
 // function for the pop up dm
 function AcceptDM(sender) {
-    return confirm(`User ${sender} sent a DM`);
+    return confirm(`You got a DM`);
 }
 
 function get_online_users() {
@@ -182,6 +182,7 @@ socket.onmessage = function (ws_message) {
 
     switch (messageType) {
         case 'chatMessage':
+            console.log(`adding ${message} from DM`)
             addMessage(message);
             break;
         case 'setUsername':
@@ -212,21 +213,11 @@ socket.onmessage = function (ws_message) {
 
 
         case 'DM' :
-            let dm_sender = message.sender;
-            let dm_receiver = message.receiver;;
-            if (AcceptDM(sender)) {
-                socket.send(JSON.stringify({
-                    'messageType': 'ChallengeAccepted',
-                    'sender': sender,
-                    'receiver': receiver
-                }));
-            }
-
+            console.log('CASE DM WAS CALLED')
+            if (AcceptDM('Got DM')) {}
             break;
         
         case 'DMAccepted':
-            let dm_challenger = message.sender;
-            let dm_challenged = message.receiver;
             console.log('DM was accepted')
             break;
 
